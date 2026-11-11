@@ -414,9 +414,11 @@ function importData(ev){
 
 
 /* ============ 云端同步（Supabase） ============ */
+var SB_DEFAULT={url:'https://boyttofdgrtpxobxfklz.supabase.co',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJveXR0b2ZkZ3J0cHhvYnhma2x6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQzNTU1NjYsImV4cCI6MjEwOTkzMTU2Nn0.y3dN0KgVyXorYVGrnlQkGk7Z7UCE69kfriGlOhywGuY'};
 var sb=null, sbUser=null, cloudTimer=null;
 function sbInit(){
   var c=localStorage.getItem('sbCfg');
+  if(!c&&SB_DEFAULT.url)c=JSON.stringify(SB_DEFAULT);
   if(c&&window.supabase){
     try{c=JSON.parse(c);sb=supabase.createClient(c.url,c.key);}catch(e){sb=null;}
   }
@@ -437,7 +439,7 @@ async function cloudLoad(){
 }
 function showLogin(){
   var m=document.getElementById('loginMask');m.style.display='flex';
-  var hasCfg=!!localStorage.getItem('sbCfg');
+  var hasCfg=!!localStorage.getItem('sbCfg')||!!SB_DEFAULT.url;
   document.getElementById('cfgBox').style.display=hasCfg?'none':'block';
   document.getElementById('authBox').style.display=hasCfg?'block':'none';
 }
