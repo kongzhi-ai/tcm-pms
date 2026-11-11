@@ -171,7 +171,7 @@ input[type=email],input[type=password]{padding:8px 10px;border:1px solid #d6dee2
     <button class="btn" style="width:100%;margin-bottom:8px" onclick="doLogin()">登录</button>
     <button class="btn sm" style="width:100%" onclick="doSignup()">首次使用，注册新账号</button>
     <p id="authMsg" style="font-size:12px;color:var(--muted);margin-top:10px"></p>
-    <p style="text-align:center;margin-top:10px"><a href="javascript:void(0)" onclick="skipLogin()" style="font-size:12px;color:var(--muted)">暂不登录，仅本地使用</a></p>
+    <p style="text-align:center;margin-top:10px"><a href="javascript:void(0)" onclick="skipLogin()" style="font-size:12px;color:var(--muted)">暂不登录，仅本地使用</a> · <a href="javascript:void(0)" onclick="resetCfg()" style="font-size:12px;color:var(--muted)">重新配置连接信息</a></p>
   </div>
 </div>
 </div>
@@ -448,7 +448,7 @@ function hideLogin(){
 function saveCfg(){
   var u=document.getElementById('sbUrl').value.trim(),k=document.getElementById('sbKey').value.trim();
   if(!u||!k){document.getElementById('cfgMsg').textContent='两项都要填';return;}
-  if(!/^https:\/\/.+\.supabase\.co/.test(u)){document.getElementById('cfgMsg').textContent='URL 格式应为 https://xxxx.supabase.co';return;}
+  if(!/^https:\/\/[a-z0-9]+\.supabase\.co$/i.test(u)){document.getElementById('cfgMsg').textContent='URL 只能是 https://xxxx.supabase.co 这种格式，不能带斜杠后面的内容';return;}
   if(!window.supabase){document.getElementById('cfgMsg').textContent='在线组件加载失败，请检查网络后刷新页面重试';return;}
   localStorage.setItem('sbCfg',JSON.stringify({url:u,key:k}));
   sbInit();
@@ -469,6 +469,12 @@ async function doSignup(){
   if(r.error){document.getElementById('authMsg').textContent=r.error.message;return;}
   if(r.data.session){sbUser=r.data.user;hideLogin();toast('注册成功，已自动登录');cloudPush();}
   else{document.getElementById('authMsg').textContent='注册成功！请到邮箱点击确认邮件后再登录（或在Supabase后台关闭邮箱确认）';}
+}
+function resetCfg(){
+  localStorage.removeItem('sbCfg');sb=null;sbUser=null;
+  document.getElementById('authBox').style.display='none';
+  document.getElementById('cfgBox').style.display='block';
+  document.getElementById('cfgMsg').textContent='';
 }
 function skipLogin(){document.getElementById('loginMask').style.display='none';toast('已进入本地模式，右上角可重新登录');}
 async function doLogout(){
