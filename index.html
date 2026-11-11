@@ -381,13 +381,14 @@ function uploadFile(mod){
 }
 async function doUpload(ev){
   var f=ev.target.files[0];if(!f||!upMod)return;
-  var safe=f.name.replace(/['"\\]/g,'');
-  var path=upMod+'/'+Date.now()+'_'+safe;
-  toast('正在上传：'+safe+' …');
+  var idx=MODULES.indexOf(upMod);
+  var ext=(f.name.match(/\.[A-Za-z0-9]{1,10}$/)||[''])[0].toLowerCase();
+  var path='m'+(idx+1)+'/'+Date.now()+ext;
+  toast('正在上传：'+f.name+' …');
   var r=await sb.storage.from('project-files').upload(path,f);
   if(r.error){alert('上传失败：'+r.error.message+'\n请确认已按说明创建存储空间');return;}
   if(!DB.files[upMod])DB.files[upMod]=[];
-  DB.files[upMod].push({name:safe,path:path,size:f.size,time:new Date().toLocaleString('zh-CN')});
+  DB.files[upMod].push({name:f.name,path:path,size:f.size,time:new Date().toLocaleString('zh-CN')});
   save();renderFiles();toast('上传完成');
 }
 async function downloadFile(path,name){
