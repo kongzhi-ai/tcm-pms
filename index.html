@@ -101,6 +101,7 @@ input[type=email],input[type=password]{padding:8px 10px;border:1px solid #d6dee2
     <button onclick="document.getElementById('importFile').click()">导入备份</button>
     <button id="sbOutBtn" style="display:none" onclick="doLogout()">登出</button>
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+    <input type="file" id="fileUp" style="display:none" onchange="doUpload(event)">
   </div>
 </header>
 <nav>
@@ -353,18 +354,48 @@ function delTask(id){
 }
 
 /* ============ 文件 ============ */
+var upMod=null;
 function renderFiles(){
   var box=document.getElementById('fileBox');box.innerHTML='';
   MODULES.forEach(function(m){
     var fs=DB.files[m]||[];
     var h='<div class="mod"><h3>'+esc(m)+'</h3>';
     if(fs.length){fs.forEach(function(f,i){
-      h+='<div class="fitem"><a href="'+esc(f.url)+'" target="_blank">📄 '+esc(f.name)+'</a>'+
-         '<button class="btn sm del" onclick="delFile(\''+m.replace(/'/g,"")+'\','+i+')">删</button></div>';
+      var sizeTxt=f.size?(f.size/1048576>=1?(f.size/1048576).toFixed(1)+' MB':Math.ceil(f.size/1024)+' KB'):'';
+      var nameTag=(f.path?'📄 ':'🔗 ')+esc(f.name)+(sizeTxt?' <span style="color:var(--muted);font-size:11px">'+sizeTxt+'</span>':'');
+      var btns=(f.path
+        ?'<button class="btn sm" onclick="downloadFile(\''+f.path+'\',\''+String(f.name).replace(/'/g,'')+'\')">下载</button> '
+        :'<a class="btn sm" href="'+esc(f.url)+'" target="_blank" style="text-decoration:none">打开</a> ')+
+        '<button class="btn sm del" onclick="delFile(\''+m.replace(/'/g,'')+'\','+i+')">删</button>';
+      h+='<div class="fitem"><span>'+nameTag+'</span><span style="white-space:nowrap">'+btns+'</span></div>';
     });}else h+='<div class="empty">暂无归档文件</div>';
-    h+='<div style="margin-top:10px"><button class="btn sm" onclick="addFile(\''+m.replace(/'/g,"")+'\')">＋ 添加文件链接</button></div></div>';
+    h+='<div style="margin-top:10px"><button class="btn sm" onclick="uploadFile(\''+m.replace(/'/g,'')+'\')">⬆ 上传文件</button> '+
+       '<button class="btn sm" onclick="addFile(\''+m.replace(/'/g,'')+'\')">＋ 链接</button></div></div>';
     box.innerHTML+=h;
   });
+}
+function uploadFile(mod){
+  if(!sb||!sbUser){toast('登录后才能上传文件');return;}
+  upMod=mod;
+  var inp=document.getElementById('fileUp');inp.value='';inp.click();
+}
+async function doUpload(ev){
+  var f=ev.target.files[0];if(!f||!upMod)return;
+  var safe=f.name.replace(/['"\\]/g,'');
+  var path=upMod+'/'+Date.now()+'_'+safe;
+  toast('正在上传：'+safe+' …');
+  var r=await sb.storage.from('project-files').upload(path,f);
+  if(r.error){alert('上传失败：'+r.error.message+'\n请确认已按说明创建存储空间');return;}
+  if(!DB.files[upMod])DB.files[upMod]=[];
+  DB.files[upMod].push({name:safe,path:path,size:f.size,time:new Date().toLocaleString('zh-CN')});
+  save();renderFiles();toast('上传完成');
+}
+async function downloadFile(path,name){
+  if(!sb||!sbUser){toast('请先登录');return;}
+  var r=await sb.storage.from('project-files').download(path);
+  if(r.error){alert('下载失败：'+r.error.message);return;}
+  var a=document.createElement('a');a.href=URL.createObjectURL(r.data);a.download=name;a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);},3000);
 }
 function addFile(mod){
   var name=prompt('文件名/说明：');if(!name)return;
@@ -372,7 +403,12 @@ function addFile(mod){
   if(!DB.files[mod])DB.files[mod]=[];
   DB.files[mod].push({name:name,url:url});save();renderFiles();toast('已添加');
 }
-function delFile(mod,i){DB.files[mod].splice(i,1);save();renderFiles();}
+async function delFile(mod,i){
+  if(!confirm('删除该文件记录'+(DB.files[mod][i].path?'及云端文件':'')+'？'))return;
+  var f=DB.files[mod][i];
+  if(f.path&&sb&&sbUser){await sb.storage.from('project-files').remove([f.path]);}
+  DB.files[mod].splice(i,1);save();renderFiles();
+}
 
 /* ============ 里程碑 ============ */
 function renderMile(){
