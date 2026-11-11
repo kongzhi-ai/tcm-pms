@@ -434,7 +434,12 @@ function cloudPush(){
 async function cloudLoad(){
   var r=await sb.from('project_data').select('data').eq('id',1).single();
   if(r.data&&r.data.data&&r.data.data.tasks){
-    DB=r.data.data;localStorage.setItem(KEY,JSON.stringify(DB));location.reload();
+    var incoming=r.data.data;
+    if(JSON.stringify(incoming)!==JSON.stringify(DB)){
+      DB=incoming;localStorage.setItem(KEY,JSON.stringify(DB));
+      renderDash();renderTasks();renderFiles();renderMile();
+      toast('已同步云端最新数据');
+    }
   }else{cloudPush();}
 }
 function showLogin(){
