@@ -71,6 +71,10 @@ tr:hover td{background:#f8fbfc}
 .tname{cursor:pointer}.tname:hover{color:var(--primary);text-decoration:underline}
 /* 文件 */
 .file-cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.filecard{height:150px;cursor:pointer;transition:box-shadow .2s}
+.filecard:hover{box-shadow:0 4px 18px rgba(30,60,75,.16);outline:1px solid var(--primary)}
+#pvMask{display:none;position:fixed;inset:0;background:rgba(20,40,50,.6);z-index:300;align-items:center;justify-content:center}
+.pvbox{background:#fff;border-radius:12px;padding:20px;width:min(880px,94vw);max-height:88vh;overflow:auto}
 .fitem{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border:1px solid #eef2f4;border-radius:8px;margin-top:8px;font-size:13px;background:#fbfdfe}
 .fitem a{color:var(--primary);text-decoration:none;word-break:break-all}
 .fitem a:hover{text-decoration:underline}
@@ -147,8 +151,29 @@ input[type=email],input[type=password]{padding:8px 10px;border:1px solid #d6dee2
   </div>
   <!-- 文件 -->
   <div class="page" id="files">
-    <h2 class="section">文件管理（按模块归档，可挂网盘/文档链接）</h2>
+    <h2 class="section">文件管理（点击模块卡片进入，支持上传、预览、下载）</h2>
     <div class="file-cols" id="fileBox"></div>
+  </div>
+  <!-- 文件二级页面 -->
+  <div class="page" id="filedetail">
+    <h2 class="section"><a href="javascript:void(0)" onclick="backFiles()" style="color:var(--primary);text-decoration:none">← 返回</a>　<span id="fdTitle"></span></h2>
+    <div class="card">
+      <div class="toolbar">
+        <button class="btn" onclick="uploadFile(curFileMod)">⬆ 上传文件</button>
+        <button class="btn sm" onclick="addFile(curFileMod)">＋ 添加链接</button>
+        <span style="flex:1"></span>
+        <span style="font-size:13px;color:var(--muted);align-self:center">排序：</span>
+        <select onchange="setFileSort(this.value)">
+          <option value="time">按上传时间（新→旧）</option>
+          <option value="name">按文件名</option>
+          <option value="type">按文件类型</option>
+        </select>
+      </div>
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th>文件名</th><th>类型</th><th>大小</th><th>上传时间</th><th>操作</th></tr></thead>
+        <tbody id="fdBody"></tbody>
+      </table></div>
+    </div>
   </div>
   <!-- 里程碑 -->
   <div class="page" id="mile">
@@ -176,6 +201,9 @@ input[type=email],input[type=password]{padding:8px 10px;border:1px solid #d6dee2
   </div>
 </div>
 </div>
+<div id="pvMask" onclick="if(event.target===this)closePv()"><div class="pvbox">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><b id="pvTitle"></b><button class="btn sm" onclick="closePv()">关闭</button></div>
+<div id="pvBox"></div></div></div>
 <footer>本工具为研发辅助管理用途 · 关键原始数据请同步保存至受控系统</footer>
 <div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -354,24 +382,56 @@ function delTask(id){
 }
 
 /* ============ 文件 ============ */
-var upMod=null;
+var upMod=null, curFileMod=null, fileSort='time';
+function getTs(f){if(f.ts)return f.ts;var m=(f.path||'').match(/\/(\d{10,14})\./);return m?+m[1]:0;}
+function getExt(f){var m=(f.name||'').match(/\.([A-Za-z0-9]+)$/);return m?m[1].toLowerCase():'';}
+function fmtSize(s){return s?(s/1048576>=1?(s/1048576).toFixed(1)+' MB':Math.ceil(s/1024)+' KB'):'—';}
 function renderFiles(){
   var box=document.getElementById('fileBox');box.innerHTML='';
   MODULES.forEach(function(m){
     var fs=DB.files[m]||[];
-    var h='<div class="mod"><h3>'+esc(m)+'</h3>';
-    if(fs.length){fs.forEach(function(f,i){
-      var sizeTxt=f.size?(f.size/1048576>=1?(f.size/1048576).toFixed(1)+' MB':Math.ceil(f.size/1024)+' KB'):'';
-      var nameTag=(f.path?'📄 ':'🔗 ')+esc(f.name)+(sizeTxt?' <span style="color:var(--muted);font-size:11px">'+sizeTxt+'</span>':'');
-      var btns=(f.path
-        ?'<button class="btn sm" onclick="downloadFile(\''+f.path+'\',\''+String(f.name).replace(/'/g,'')+'\')">下载</button> '
-        :'<a class="btn sm" href="'+esc(f.url)+'" target="_blank" style="text-decoration:none">打开</a> ')+
-        '<button class="btn sm del" onclick="delFile(\''+m.replace(/'/g,'')+'\','+i+')">删</button>';
-      h+='<div class="fitem"><span>'+nameTag+'</span><span style="white-space:nowrap">'+btns+'</span></div>';
-    });}else h+='<div class="empty">暂无归档文件</div>';
-    h+='<div style="margin-top:10px"><button class="btn sm" onclick="uploadFile(\''+m.replace(/'/g,'')+'\')">⬆ 上传文件</button> '+
-       '<button class="btn sm" onclick="addFile(\''+m.replace(/'/g,'')+'\')">＋ 链接</button></div></div>';
-    box.innerHTML+=h;
+    var latest=null;
+    fs.forEach(function(f){if(!latest||getTs(f)>getTs(latest))latest=f;});
+    box.innerHTML+='<div class="mod filecard" onclick="openFileDetail(\''+m.replace(/'/g,'')+'\')"><h3>'+esc(m)+'</h3>'+
+      '<div class="phase">共 '+fs.length+' 个文件'+(latest?' · 最新：'+esc(latest.name):'')+'</div>'+
+      '<div style="font-size:12px;color:var(--primary);margin-top:16px">点击进入管理 →</div></div>';
+  });
+}
+function openFileDetail(mod){
+  curFileMod=mod;
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('filedetail').classList.add('active');
+  renderFileDetail();
+  window.scrollTo(0,0);
+}
+function backFiles(){
+  document.getElementById('filedetail').classList.remove('active');
+  document.getElementById('files').classList.add('active');
+  renderFiles();
+}
+function setFileSort(s){fileSort=s;renderFileDetail();}
+function refreshFileViews(){renderFiles();if(document.getElementById('filedetail').classList.contains('active'))renderFileDetail();}
+function renderFileDetail(){
+  var mod=curFileMod;
+  document.getElementById('fdTitle').textContent=mod+' · 共 '+(DB.files[mod]||[]).length+' 个文件';
+  var tb=document.getElementById('fdBody');tb.innerHTML='';
+  var fs=(DB.files[mod]||[]).slice();
+  fs.sort(function(a,b){
+    if(fileSort==='name')return (a.name||'').localeCompare(b.name||'','zh');
+    if(fileSort==='type')return getExt(a).localeCompare(getExt(b))||getTs(b)-getTs(a);
+    return getTs(b)-getTs(a);
+  });
+  if(!fs.length){tb.innerHTML='<tr><td colspan="5" class="empty">暂无文件，点左上角上传</td></tr>';return;}
+  fs.forEach(function(f){
+    var i=(DB.files[mod]||[]).indexOf(f);
+    var ext=getExt(f);
+    var typeTxt=f.path?(ext?ext.toUpperCase()+' 文件':'文件'):'外部链接';
+    tb.innerHTML+='<tr><td>'+esc(f.name)+'</td><td>'+typeTxt+'</td><td>'+fmtSize(f.size)+'</td><td>'+(f.time||'—')+'</td>'+
+    '<td style="white-space:nowrap">'+
+    '<button class="btn sm" onclick="previewFile(\''+mod.replace(/'/g,'')+'\','+i+')">预览</button> '+
+    (f.path?'<button class="btn sm" onclick="downloadFile(\''+f.path+'\',\''+String(f.name).replace(/'/g,'')+'\')">下载</button> '
+          :'<a class="btn sm" href="'+esc(f.url)+'" target="_blank" style="text-decoration:none">打开</a> ')+
+    '<button class="btn sm del" onclick="delFile(\''+mod.replace(/'/g,'')+'\','+i+')">删</button></td></tr>';
   });
 }
 function uploadFile(mod){
@@ -388,8 +448,8 @@ async function doUpload(ev){
   var r=await sb.storage.from('project-files').upload(path,f);
   if(r.error){alert('上传失败：'+r.error.message+'\n请确认已按说明创建存储空间');return;}
   if(!DB.files[upMod])DB.files[upMod]=[];
-  DB.files[upMod].push({name:f.name,path:path,size:f.size,time:new Date().toLocaleString('zh-CN')});
-  save();renderFiles();toast('上传完成');
+  DB.files[upMod].push({name:f.name,path:path,size:f.size,ts:Date.now(),time:new Date().toLocaleString('zh-CN')});
+  save();refreshFileViews();toast('上传完成');
 }
 async function downloadFile(path,name){
   if(!sb||!sbUser){toast('请先登录');return;}
@@ -398,19 +458,36 @@ async function downloadFile(path,name){
   var a=document.createElement('a');a.href=URL.createObjectURL(r.data);a.download=name;a.click();
   setTimeout(function(){URL.revokeObjectURL(a.href);},3000);
 }
+async function previewFile(mod,i){
+  var f=DB.files[mod][i];
+  if(!f.path){window.open(f.url,'_blank');return;}
+  if(!sb||!sbUser){toast('请先登录');return;}
+  var mask=document.getElementById('pvMask'),box=document.getElementById('pvBox');
+  document.getElementById('pvTitle').textContent=f.name;
+  box.innerHTML='<div class="empty">加载中…</div>';mask.style.display='flex';
+  var ext=getExt(f);
+  var r=await sb.storage.from('project-files').download(f.path);
+  if(r.error){box.innerHTML='<div class="empty">预览失败：'+esc(r.error.message)+'</div>';return;}
+  var u=URL.createObjectURL(r.data);
+  if(/^(png|jpe?g|gif|webp|bmp)$/.test(ext))box.innerHTML='<img src="'+u+'" style="max-width:100%;max-height:70vh;display:block;margin:0 auto">';
+  else if(ext==='pdf')box.innerHTML='<iframe src="'+u+'" style="width:100%;height:70vh;border:none"></iframe>';
+  else if(/^(txt|csv|md|log|json)$/.test(ext)){var t=await r.data.text();box.innerHTML='<pre style="white-space:pre-wrap;max-height:70vh;overflow:auto;font-size:13px;background:#f7f9fa;padding:12px;border-radius:8px">'+esc(t.slice(0,200000))+'</pre>';}
+  else box.innerHTML='<div class="empty" style="text-align:center;padding:30px 0">该格式（'+(ext||'未知').toUpperCase()+'）暂不支持在线预览，请下载后查看</div>';
+}
+function closePv(){document.getElementById('pvMask').style.display='none';}
 function addFile(mod){
   var name=prompt('文件名/说明：');if(!name)return;
   var url=prompt('链接地址（可填网盘分享链接、在线文档地址等）：','http://');if(url===null)return;
   if(!DB.files[mod])DB.files[mod]=[];
-  DB.files[mod].push({name:name,url:url});save();renderFiles();toast('已添加');
+  DB.files[mod].push({name:name,url:url,ts:Date.now(),time:new Date().toLocaleString('zh-CN')});
+  save();refreshFileViews();toast('已添加');
 }
 async function delFile(mod,i){
   if(!confirm('删除该文件记录'+(DB.files[mod][i].path?'及云端文件':'')+'？'))return;
   var f=DB.files[mod][i];
   if(f.path&&sb&&sbUser){await sb.storage.from('project-files').remove([f.path]);}
-  DB.files[mod].splice(i,1);save();renderFiles();
+  DB.files[mod].splice(i,1);save();refreshFileViews();
 }
-
 /* ============ 里程碑 ============ */
 function renderMile(){
   var box=document.getElementById('mileBox');box.innerHTML='';
