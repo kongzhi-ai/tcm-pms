@@ -44,6 +44,10 @@ h2.section{font-size:16px;margin:6px 0 16px;color:var(--primary-dark);border-lef
 .g-task-col{width:230px;flex-shrink:0;padding-right:10px;font-weight:600;color:var(--text)}
 .g-timeline{flex:1;position:relative}
 .g-months{display:flex}
+.g-years{display:flex;border-bottom:1px solid #d8e2e7}
+.g-year{flex:1;text-align:center;font-size:11px;font-weight:700;color:var(--primary-dark);padding:3px 0;background:#eef4f6}
+.g-head2{border-bottom:2px solid #e3e9ec}
+.g-yb{border-left:2px solid #8fa9b4 !important}
 .g-month{flex:1;text-align:center;border-left:1px solid #eef2f4;font-size:11px;white-space:nowrap;padding:2px 0}
 .g-row{display:flex;align-items:center;border-bottom:1px solid #f2f5f7;padding:7px 0}
 .g-name{width:230px;flex-shrink:0;padding-right:10px;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -99,10 +103,12 @@ input[type=email],input[type=password]{padding:8px 10px;border:1px solid #d6dee2
   <div>
     <h1>🌿 中药新药研发项目管理平台</h1>
     <div class="sub">药学研究 · 委外非临床 · 临床方案 · IND申报 &nbsp;|&nbsp; 数据保存在本地浏览器，定期导出备份</div>
+    <div id="curProjLabel" style="font-size:12px;color:#c9a44b;margin-top:4px"></div>
   </div>
   <div class="actions">
     <button onclick="exportData()">导出备份</button>
     <button onclick="document.getElementById('importFile').click()">导入备份</button>
+    <button onclick="showProjView()">📁 切换项目</button>
     <button id="sbOutBtn" style="display:none" onclick="doLogout()">登出</button>
     <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
     <input type="file" id="fileUp" style="display:none" onchange="doUpload(event)">
@@ -178,6 +184,7 @@ input[type=email],input[type=password]{padding:8px 10px;border:1px solid #d6dee2
   <!-- 里程碑 -->
   <div class="page" id="mile">
     <h2 class="section">关键里程碑（IND倒排）</h2>
+    <div class="toolbar" style="margin-top:-6px"><button class="btn sm" onclick="addMile()">＋ 添加里程碑</button></div>
     <div class="card"><div class="timeline" id="mileBox"></div></div>
   </div>
 </main>
@@ -204,6 +211,14 @@ input[type=email],input[type=password]{padding:8px 10px;border:1px solid #d6dee2
 <div id="pvMask" onclick="if(event.target===this)closePv()"><div class="pvbox">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><b id="pvTitle"></b><button class="btn sm" onclick="closePv()">关闭</button></div>
 <div id="pvBox"></div></div></div>
+<div id="projview" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:150;overflow:auto">
+  <div style="max-width:960px;margin:44px auto;padding:0 24px">
+    <h2 style="color:var(--primary-dark)">📁 选择要管理的项目</h2>
+    <p style="font-size:12px;color:var(--muted);margin-top:6px">不同项目的数据相互独立，均可云端同步</p>
+    <div id="projList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;margin:22px 0"></div>
+    <button class="btn" onclick="newProject()">＋ 新建项目</button>
+  </div>
+</div>
 <footer>本工具为研发辅助管理用途 · 关键原始数据请同步保存至受控系统</footer>
 <div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -239,14 +254,18 @@ var defaultTasks=[
 var defaultMile=[
  ["CRO完成筛选并签约","2027-04-30",false],"长周期毒理/稳定性项目需尽早启动，决定申报节奏",
 ];
-function load(){
-  var d=localStorage.getItem(KEY);
-  if(d){d=JSON.parse(d);return d;}
-  return {
-    tasks: defaultTasks.map(function(t,i){return {id:i+1,mod:t[0],name:t[1],s:t[2],e:t[3],owner:t[4],st:t[5],deliver:t[6]};}),
-    nextId: defaultTasks.length+1,
-    files: {},
-    miles: [
+var DB=null, projects=[], curPid=null, curPname='';
+function allKey(pid){return KEY+'_'+pid;}
+function loadProjects(){
+  try{return JSON.parse(localStorage.getItem(KEY+'_projects')||'[]');}catch(e){return [];}
+}
+function saveProjects(){localStorage.setItem(KEY+'_projects',JSON.stringify(projects));}
+function freshData(withTemplate){
+  var d={tasks:[],nextId:1,files:{},miles:[]};
+  if(withTemplate){
+    d.tasks=defaultTasks.map(function(t,i){return {id:i+1,mod:t[0],name:t[1],s:t[2],e:t[3],owner:t[4],st:t[5],deliver:t[6]};});
+    d.nextId=defaultTasks.length+1;
+    d.miles=[
       {t:"药材与饮片研究完成",d:"2027-04-30",done:false},
       {t:"小试工艺确定",d:"2027-08-31",done:false},
       {t:"CRO签约（毒理+药效）",d:"2027-04-30",done:false},
@@ -257,11 +276,99 @@ function load(){
       {t:"CTD资料齐套",d:"2028-09-30",done:false},
       {t:"CDE受理",d:"2028-10-31",done:false},
       {t:"取得临床批件",d:"2029-04-30",done:false}
-    ]
-  };
+    ];
+  }
+  return d;
 }
-var DB=load();
-function save(){localStorage.setItem(KEY,JSON.stringify(DB));cloudPush();}
+function migrateLegacy(){
+  var legacy=localStorage.getItem(KEY);
+  if(legacy){
+    try{var d=JSON.parse(legacy);
+      if(d&&d.tasks){
+        var pid=Date.now();
+        projects.push({id:pid,name:'中药新药研发项目',created_at:new Date().toISOString()});
+        localStorage.setItem(allKey(pid),JSON.stringify(d));
+        localStorage.removeItem(KEY);saveProjects();return;
+      }
+    }catch(e){}
+  }
+  if(!projects.length){
+    var p={id:Date.now(),name:'中药新药研发项目',created_at:new Date().toISOString()};
+    projects.push(p);saveProjects();
+    localStorage.setItem(allKey(p.id),JSON.stringify(freshData(true)));
+  }
+}
+async function syncProjectsCloud(){
+  if(!sb||!sbUser)return;
+  var r=await sb.from('project_data').select('id,name,created_at,updated_at,data');
+  if(r.error){console.log('项目同步失败',r.error.message);return;}
+  (r.data||[]).forEach(function(row){
+    var meta={id:row.id,name:row.name||(row.id===1?'中药新药研发项目':'项目 '+row.id),
+              created_at:row.created_at||new Date().toISOString()};
+    var i=projects.findIndex(function(p){return p.id===row.id;});
+    if(i<0)projects.push(meta);else projects[i]=Object.assign(projects[i],meta);
+    if(row.data&&row.data.tasks)localStorage.setItem(allKey(row.id),JSON.stringify(row.data));
+  });
+  saveProjects();
+}
+function projTaskCount(pid){try{var d=JSON.parse(localStorage.getItem(allKey(pid))||'null');return d&&d.tasks?d.tasks.length:0;}catch(e){return 0;}}
+function renderProjView(){
+  var box=document.getElementById('projList');box.innerHTML='';
+  if(!projects.length){box.innerHTML='<div class="empty">还没有项目，点下方按钮新建</div>';return;}
+  projects.forEach(function(p){
+    box.innerHTML+='<div class="mod" style="cursor:default"><h3>'+esc(p.name)+'</h3>'+
+      '<div class="phase">'+projTaskCount(p.id)+' 项任务 · 创建于 '+String(p.created_at||'').slice(0,10)+'</div>'+
+      '<div style="margin-top:14px;white-space:nowrap">'+
+      '<button class="btn sm" style="background:var(--primary);color:#fff" onclick="openProject('+p.id+')">进入</button> '+
+      '<button class="btn sm" onclick="renameProject('+p.id+')">重命名</button> '+
+      '<button class="btn sm del" onclick="delProject('+p.id+')">删除</button></div></div>';
+  });
+}
+function showProjView(){document.getElementById('projview').style.display='block';renderProjView();}
+function hideProjView(){document.getElementById('projview').style.display='none';}
+function openProject(pid){
+  var p=projects.find(function(x){return x.id===pid;});if(!p)return;
+  curPid=pid;curPname=p.name;
+  var raw=localStorage.getItem(allKey(pid));
+  if(raw){try{DB=JSON.parse(raw);}catch(e){DB=freshData(false);}}
+  else DB=freshData(false);
+  if(!DB.files)DB.files={};
+  if(!DB.miles)DB.miles=[];
+  localStorage.setItem('tcmPmsLastPid',pid);
+  document.getElementById('curProjLabel').textContent='当前项目：'+p.name;
+  hideProjView();
+  showPage('dash',document.querySelectorAll('nav button')[0]);
+  renderDash();renderTasks();renderFiles();renderMile();renderGantt();
+}
+function newProject(){
+  var name=prompt('新项目名称：');if(!name||!name.trim())return;
+  var p={id:Date.now(),name:name.trim(),created_at:new Date().toISOString()};
+  projects.push(p);saveProjects();
+  localStorage.setItem(allKey(p.id),JSON.stringify(freshData(false)));
+  openProject(p.id);
+}
+function renameProject(pid){
+  var p=projects.find(function(x){return x.id===pid;});if(!p)return;
+  var name=prompt('项目名称：',p.name);if(!name||!name.trim())return;
+  p.name=name.trim();saveProjects();
+  if(pid===curPid){curPname=p.name;document.getElementById('curProjLabel').textContent='当前项目：'+p.name;cloudPush();}
+  else if(sb&&sbUser){sb.from('project_data').update({name:p.name}).eq('id',pid).then(function(){});}
+  renderProjView();
+}
+async function delProject(pid){
+  var p=projects.find(function(x){return x.id===pid;});if(!p)return;
+  if(!confirm('删除项目「'+p.name+'」？该项目的数据和云端记录将一并删除'))return;
+  if(sb&&sbUser){await sb.from('project_data').delete().eq('id',pid);}
+  localStorage.removeItem(allKey(pid));
+  projects=projects.filter(function(x){return x.id!==pid;});saveProjects();
+  if(curPid===pid){curPid=null;DB=freshData(false);showProjView();}
+  else renderProjView();
+}
+function save(){
+  if(!curPid)return;
+  localStorage.setItem(allKey(curPid),JSON.stringify(DB));
+  cloudPush();
+}
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(function(){t.style.display='none';},1800);}
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
@@ -307,9 +414,18 @@ function renderGantt(){
   var months=[],cur=new Date(m0);
   while(cur<m1){months.push(new Date(cur));cur.setMonth(cur.getMonth()+1);}
   var total=m1-m0;
-  var h='<div class="g-head"><div class="g-task-col">任务</div><div class="g-timeline"><div class="g-months">';
-  months.forEach(function(m){h+='<div class="g-month">'+m.getFullYear()+'.'+String(m.getMonth()+1).padStart(2,'0')+'</div>';});
-  h+='</div></div></div>';
+  var yearsHtml='', monthsHtml='', i=0;
+  while(i<months.length){
+    var y=months[i].getFullYear(),c=0;
+    while(i+c<months.length&&months[i+c].getFullYear()===y)c++;
+    yearsHtml+='<div class="g-year'+(yearsHtml?' g-yb':'')+'" style="flex:'+c+'">'+y+'年</div>';
+    i+=c;
+  }
+  months.forEach(function(m,idx){
+    monthsHtml+='<div class="g-month'+(m.getMonth()===0&&idx>0?' g-yb':'')+'">'+(m.getMonth()+1)+'月</div>';
+  });
+  var h='<div class="g-head"><div class="g-task-col"></div><div class="g-timeline"><div class="g-years">'+yearsHtml+'</div></div></div>'+
+        '<div class="g-head g-head2"><div class="g-task-col">任务</div><div class="g-timeline"><div class="g-months">'+monthsHtml+'</div></div></div>';
   DB.tasks.forEach(function(t){
     var l=(new Date(t.s)-m0)/total*100, w=(new Date(t.e)-new Date(t.s))/total*100;
     if(w<0.8)w=0.8;
@@ -496,6 +612,12 @@ function renderMile(){
       '<p><a href="javascript:void(0)" onclick="toggleMile('+i+')" style="color:var(--primary);font-size:12px">'+(m.done?'标记为未完成':'标记为已完成')+'</a></p></div>';
   });
 }
+function addMile(){
+  var t=prompt('里程碑名称：');if(!t||!t.trim())return;
+  var d=prompt('预计日期（YYYY-MM-DD）：','2027-12-31');if(d===null)return;
+  DB.miles.push({t:t.trim(),d:d,done:false});
+  save();renderMile();toast('已添加');
+}
 function toggleMile(i){DB.miles[i].done=!DB.miles[i].done;save();renderMile();}
 
 /* ============ 导入导出 ============ */
@@ -538,23 +660,12 @@ function sbInit(){
   }
 }
 function cloudPush(){
-  if(!sb||!sbUser)return;
+  if(!sb||!sbUser||!curPid)return;
   clearTimeout(cloudTimer);
   cloudTimer=setTimeout(function(){
-    sb.from('project_data').upsert({id:1,data:DB,updated_at:new Date().toISOString()})
+    sb.from('project_data').upsert({id:curPid,name:curPname,data:DB,updated_at:new Date().toISOString()})
       .then(function(r){if(r.error)console.log('云端同步失败',r.error.message);});
   },800);
-}
-async function cloudLoad(){
-  var r=await sb.from('project_data').select('data').eq('id',1).single();
-  if(r.data&&r.data.data&&r.data.data.tasks){
-    var incoming=r.data.data;
-    if(JSON.stringify(incoming)!==JSON.stringify(DB)){
-      DB=incoming;localStorage.setItem(KEY,JSON.stringify(DB));
-      renderDash();renderTasks();renderFiles();renderMile();
-      toast('已同步云端最新数据');
-    }
-  }else{cloudPush();}
 }
 function showLogin(){
   var m=document.getElementById('loginMask');m.style.display='flex';
@@ -581,14 +692,17 @@ async function doLogin(){
   var em=document.getElementById('sbEmail').value.trim(),pw=document.getElementById('sbPwd').value;
   var r=await sb.auth.signInWithPassword({email:em,password:pw});
   if(r.error){document.getElementById('authMsg').textContent=r.error.message;return;}
-  sbUser=r.data.user;hideLogin();toast('登录成功，正在同步云端数据…');await cloudLoad();renderDash();
+  sbUser=r.data.user;hideLogin();toast('登录成功，正在同步项目…');
+  await syncProjectsCloud();
+  var last=+localStorage.getItem('tcmPmsLastPid')||0;
+  if(last&&projects.some(function(p){return p.id===last;}))openProject(last);else showProjView();
 }
 async function doSignup(){
   var em=document.getElementById('sbEmail').value.trim(),pw=document.getElementById('sbPwd').value;
   if(pw.length<6){document.getElementById('authMsg').textContent='密码至少6位';return;}
   var r=await sb.auth.signUp({email:em,password:pw});
   if(r.error){document.getElementById('authMsg').textContent=r.error.message;return;}
-  if(r.data.session){sbUser=r.data.user;hideLogin();toast('注册成功，已自动登录');cloudPush();}
+  if(r.data.session){sbUser=r.data.user;hideLogin();toast('注册成功，已自动登录');await syncProjectsCloud();showProjView();}
   else{document.getElementById('authMsg').textContent='注册成功！请到邮箱点击确认邮件后再登录（或在Supabase后台关闭邮箱确认）';}
 }
 function resetCfg(){
@@ -599,20 +713,23 @@ function resetCfg(){
 }
 function skipLogin(){document.getElementById('loginMask').style.display='none';toast('已进入本地模式，右上角可重新登录');}
 async function doLogout(){
-  await sb.auth.signOut();sbUser=null;
-  document.getElementById('sbOutBtn').style.display='none';showLogin();
+  await sb.auth.signOut();sbUser=null;curPid=null;DB=freshData(false);
+  document.getElementById('sbOutBtn').style.display='none';
+  document.getElementById('projview').style.display='none';
+  showLogin();
 }
 
 /* 初始化 */
 (async function(){
-  sbInit();renderDash();
+  sbInit();
+  projects=loadProjects();
+  migrateLegacy();
+  showProjView();
   if(sb){
     var sess=await sb.auth.getSession();
-    if(sess.data.session){sbUser=sess.data.session.user;hideLogin();await cloudLoad();renderDash();renderTasks();}
+    if(sess.data.session){sbUser=sess.data.session.user;hideLogin();await syncProjectsCloud();renderProjView();}
     else showLogin();
-  } else {
-    showLogin();
-  }
+  }else{showLogin();}
 })();
 </script>
 </body>
