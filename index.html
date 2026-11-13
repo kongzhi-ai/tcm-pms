@@ -47,7 +47,6 @@ h2.section{font-size:16px;margin:6px 0 16px;color:var(--primary-dark);border-lef
 .g-months{display:flex}
 .g-years{display:flex;border-bottom:1px solid #d8e2e7}
 .g-year{flex:1;text-align:center;font-size:11px;font-weight:700;color:var(--primary-dark);padding:3px 0;background:#eef4f6}
-.g-head2{border-bottom:2px solid #e3e9ec}
 .g-yb{border-left:2px solid #8fa9b4 !important}
 .g-month{flex:1;text-align:center;border-left:1px solid #eef2f4;font-size:11px;white-space:nowrap;padding:2px 0}
 .g-row{display:flex;align-items:center;border-bottom:1px solid #f2f5f7;padding:7px 0}
@@ -83,6 +82,14 @@ tr:hover td{background:#f8fbfc}
 .sbtn{background:#eef3f5;border:1px solid #d6dee2;border-radius:4px;color:var(--primary);cursor:pointer;font-size:11px;padding:1px 6px;margin-left:4px;font-family:inherit}
 .sbtn:hover{background:var(--primary);color:#fff}
 .g-nobar{font-size:11px;color:var(--muted);background:#f0f3f5;border-radius:4px;padding:1px 8px}
+.gm-block{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;margin-bottom:16px}
+.gm-head{display:flex;align-items:center;gap:10px;border-bottom:1px solid #edf1f3;padding-bottom:8px;margin-bottom:6px}
+.gm-toggle{cursor:pointer;color:var(--primary);font-size:12px;width:16px;text-align:center;flex-shrink:0;user-select:none}
+.gm-title{font-weight:600;font-size:14px;color:var(--primary-dark);cursor:pointer;flex-shrink:0}
+.gm-title:hover{color:var(--primary)}
+.gm-count{color:var(--muted);font-weight:400;font-size:12px}
+.gm-hint{font-size:12px;color:var(--muted);margin-left:auto}
+.gm-bar-sum{background:linear-gradient(90deg,var(--primary),var(--accent))}
 .filecard:hover{box-shadow:0 4px 18px rgba(30,60,75,.16);outline:1px solid var(--primary)}
 #pvMask{display:none;position:fixed;inset:0;background:rgba(20,40,50,.6);z-index:300;align-items:center;justify-content:center}
 .pvbox{background:#fff;border-radius:12px;padding:20px;width:min(880px,94vw);max-height:88vh;overflow:auto}
@@ -109,7 +116,6 @@ input[type=email],input[type=password]{padding:8px 10px;border:1px solid #d6dee2
 <header>
   <div>
     <h1 style="display:flex;align-items:center;gap:10px"><svg width="40" height="40" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="本草慧眼LOGO"><defs><linearGradient id="hg" x1="25" y1="45" x2="175" y2="100" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#34d399"/><stop offset="60%" stop-color="#10b981"/><stop offset="100%" stop-color="#047857"/></linearGradient><linearGradient id="gd" x1="175" y1="155" x2="25" y2="100" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#fde047"/><stop offset="50%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#b45309"/></linearGradient></defs><polygon points="100,10 186,71 153,172 47,172 14,71" stroke="#334155" stroke-width="1.8" stroke-dasharray="4 4" fill="none"/><circle cx="100" cy="17" r="4.5" fill="#10b981"/><circle cx="179.4" cy="73.2" r="4" fill="#ef4444"/><circle cx="148.8" cy="166.4" r="4" fill="#f59e0b"/><circle cx="51.2" cy="166.4" r="4" fill="#94a3b8"/><circle cx="20.6" cy="73.2" r="4" fill="#0284c7"/><path d="M30,93 C58,40 142,40 170,93 C138,79 62,79 30,93 Z" fill="url(#hg)"/><path d="M30,107 C58,160 142,160 170,107 C138,121 62,121 30,107 Z" fill="url(#gd)"/><g transform="translate(114.00,100.00) rotate(90.0)"><path d="M-3.4,-1.6 L3.4,0 L-3.4,1.6 Z" fill="#38bdf8"/></g><g transform="translate(112.12,107.00) rotate(120.0)"><path d="M-3.4,-1.6 L3.4,0 L-3.4,1.6 Z" fill="#38bdf8"/></g><g transform="translate(107.00,112.12) rotate(150.0)"><path d="M-3.4,-1.6 L3.4,0 L-3.4,1.6 Z" fill="#38bdf8"/></g><g transform="translate(100.00,114.00) rotate(180.0)"><path d="M-3.4,-1.6 L3.4,0 L-3.4,1.6 Z" fill="#38bdf8"/></g><g transform="translate(93.00,112.12) rotate(210.0)"><path d="M-3.4,-1.6 L3.4,0 L-3.4,1.6 Z" fill="#38bdf8"/></g><g transform="translate(87.88,107.00) rotate(240.0)"><path d="M-3.4,-1.6 L3.4,0 L-3.4,1.6 Z" fill="#38bdf8"/></g><g transform="translate(86.00,100.00) rotate(270.0)"><path d="M-3.4,-1.6 L3.4,0 L-3.4,1.6 Z" fill="#38bdf8"/></g><g transform="translate(87.88,93.00) rotate(300.0)"><path d="M-3.4,-1.6 L3.4,0 L-3.4,1.6 Z" fill="#38bdf8"/></g><g transform="translate(93.00,87.88) rotate(330.0)"><path d="M-3.4,-1.6 L3.4,0 L-3.4,1.6 Z" fill="#38bdf8"/></g><g transform="translate(100.00,86.00) rotate(360.0)"><path d="M-3.4,-1.6 L3.4,0 L-3.4,1.6 Z" fill="#38bdf8"/></g><g transform="translate(107.00,87.88) rotate(390.0)"><path d="M-3.4,-1.6 L3.4,0 L-3.4,1.6 Z" fill="#38bdf8"/></g><g transform="translate(112.12,93.00) rotate(420.0)"><path d="M-3.4,-1.6 L3.4,0 L-3.4,1.6 Z" fill="#38bdf8"/></g><g transform="translate(108.00,100.00) rotate(-90.0)"><path d="M-2.8,-1.4 L2.8,0 L-2.8,1.4 Z" fill="#0284c7"/></g><g transform="translate(105.66,105.66) rotate(-45.0)"><path d="M-2.8,-1.4 L2.8,0 L-2.8,1.4 Z" fill="#0284c7"/></g><g transform="translate(100.00,108.00) rotate(0.0)"><path d="M-2.8,-1.4 L2.8,0 L-2.8,1.4 Z" fill="#0284c7"/></g><g transform="translate(94.34,105.66) rotate(45.0)"><path d="M-2.8,-1.4 L2.8,0 L-2.8,1.4 Z" fill="#0284c7"/></g><g transform="translate(92.00,100.00) rotate(90.0)"><path d="M-2.8,-1.4 L2.8,0 L-2.8,1.4 Z" fill="#0284c7"/></g><g transform="translate(94.34,94.34) rotate(135.0)"><path d="M-2.8,-1.4 L2.8,0 L-2.8,1.4 Z" fill="#0284c7"/></g><g transform="translate(100.00,92.00) rotate(180.0)"><path d="M-2.8,-1.4 L2.8,0 L-2.8,1.4 Z" fill="#0284c7"/></g><g transform="translate(105.66,94.34) rotate(225.0)"><path d="M-2.8,-1.4 L2.8,0 L-2.8,1.4 Z" fill="#0284c7"/></g></svg>中药新药研发项目管理平台</h1>
-    <div class="sub">药学研究 · 委外非临床 · 临床方案 · IND申报 &nbsp;|&nbsp; 云端同步 · 多项目多成员协作 &nbsp;|&nbsp; 请定期导出备份</div>
     <div id="curProjLabel" style="font-size:12px;color:#c9a44b;margin-top:4px"></div>
   </div>
   <div class="actions">
@@ -229,37 +235,68 @@ input[type=email],input[type=password]{padding:8px 10px;border:1px solid #d6dee2
     <button class="btn" onclick="newProject()">＋ 新建项目</button>
   </div>
 </div>
+<div id="projFormMask" style="display:none;position:fixed;inset:0;background:rgba(20,40,50,.55);z-index:250;align-items:center;justify-content:center">
+<div style="background:#fff;border-radius:12px;padding:26px;width:370px;box-shadow:0 8px 30px rgba(0,0,0,.25)">
+  <h3 id="pfTitle" style="color:var(--primary-dark);margin-bottom:14px">新建项目</h3>
+  <input type="text" id="pfName" placeholder="项目名称（必填）" style="width:100%;margin-bottom:10px">
+  <input type="text" id="pfLeader" placeholder="项目负责人（选填）" style="width:100%;margin-bottom:10px">
+  <select id="pfReg" style="width:100%;margin-bottom:14px">
+    <option value="">注册分类（选填，请选择）…</option>
+    <option>1.1 中药复方制剂</option>
+    <option>1.2 提取物及其制剂</option>
+    <option>1.3 新药材及其制剂</option>
+    <option>2.1 改给药途径制剂</option>
+    <option>2.2 改剂型制剂</option>
+    <option>2.3 增加功能主治</option>
+    <option>2.4 改生产工艺或辅料</option>
+    <option>3.1 古代经典名方目录制剂</option>
+    <option>3.2 其他来源于古代经典名方制剂</option>
+    <option>4 同名同方</option>
+  </select>
+  <button class="btn" style="width:100%;margin-bottom:8px" onclick="submitProjForm()">确定</button>
+  <button class="btn sm" style="width:100%" onclick="closeProjForm()">取消</button>
+  <p id="pfMsg" style="font-size:12px;color:var(--red);margin-top:8px"></p>
+</div>
+</div>
 <footer>本工具为研发辅助管理用途 · 关键原始数据请同步保存至受控系统</footer>
 <div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* ============ 数据层 ============ */
-var MODULES = ["药材饮片研究","炮制研究","小试工艺研究","质量研究","方法学验证","稳定性研究","中试研究","委外非临床研究","临床方案撰写","IND申报"];
+var MODULES = ["（一）行政文件和药品信息","（二）概要","（三）药学研究资料","（四）药理毒理研究资料","（五）临床研究资料"];
 var STATUSES = ["未开始","进行中","已完成","暂停"];
 var KEY='tcmPmsV1';
 var defaultTasks=[
- // 模块, 任务, 开始, 结束, 负责人, 状态, 交付物
- ["药材饮片研究","药材基源与产地考察","2026-11-01","2026-12-15","","进行中","药材基源鉴定报告、产地考察记录"],
- ["药材饮片研究","饮片质量标准草案","2026-12-01","2027-01-31","","未开始","饮片质量标准草案"],
- ["炮制研究","炮制工艺优选","2027-01-01","2027-03-31","","未开始","炮制工艺研究资料"],
- ["炮制研究","炮制成品质量标准","2027-03-01","2027-04-30","","未开始","炮制品质量标准草案"],
- ["小试工艺研究","提取纯化工艺路线筛选","2027-02-01","2027-05-31","","未开始","小试工艺研究报告"],
- ["小试工艺研究","工艺参数优化（正交/响应面）","2027-05-01","2027-08-31","","未开始","工艺优化报告"],
- ["质量研究","性状/鉴别/检查项研究","2027-06-01","2027-10-31","","未开始","质量研究资料"],
- ["质量研究","含量测定方法开发","2027-08-01","2027-12-31","","未开始","含量测定方法草案"],
- ["质量研究","质量标准草案定稿","2027-12-01","2028-02-15","","未开始","质量标准草案"],
- ["方法学验证","专属性/线性/精密度等验证","2028-01-01","2028-04-30","","未开始","方法学验证报告"],
- ["中试研究","中试放大（3批）","2028-03-01","2028-06-30","","未开始","中试生产记录、3批检验报告"],
- ["稳定性研究","影响因素与加速试验启动","2028-05-01","2028-06-30","","未开始","稳定性试验方案"],
- ["稳定性研究","长期稳定性考察（ ongoing ）","2028-06-01","2029-06-30","","未开始","阶段性稳定性数据"],
- ["委外非临床研究","CRO筛选与合同签订","2027-03-01","2027-04-30","","未开始","CRO评估报告、合同"],
- ["委外非临床研究","药效学试验（委外）","2027-05-01","2027-12-31","","未开始","药效学研究报告"],
- ["委外非临床研究","急性/长期毒性试验（委外）","2027-06-01","2028-06-30","","未开始","毒理学研究报告"],
- ["委外非临床研究","药代动力学试验（委外，如需）","2028-01-01","2028-08-31","","未开始","药代研究报告"],
- ["临床方案撰写","IND申报资料框架搭建","2028-04-01","2028-05-31","","未开始","申报资料目录框架"],
- ["临床方案撰写","Ⅰ期临床试验方案撰写","2028-05-01","2028-08-31","","未开始","临床试验方案及研究者手册"],
- ["IND申报","CTD资料汇总与自查","2028-07-01","2028-09-30","","未开始","全套CTD资料"],
- ["IND申报","CDE受理与审评跟进","2028-10-01","2029-04-30","","未开始","受理通知书、批件"],
+ ["（一）行政文件和药品信息","1.0 说明函","","","","未开始",""],
+ ["（一）行政文件和药品信息","1.1 目录","","","","未开始",""],
+ ["（一）行政文件和药品信息","1.2 申请表","","","","未开始",""],
+ ["（一）行政文件和药品信息","1.3 产品信息相关材料","","","","未开始",""],
+ ["（一）行政文件和药品信息","1.4 申请状态","","","","未开始",""],
+ ["（一）行政文件和药品信息","1.5 加快上市注册程序申请","","","","未开始",""],
+ ["（一）行政文件和药品信息","1.6 沟通交流会议","","","","未开始",""],
+ ["（一）行政文件和药品信息","1.7 临床试验过程管理信息","","","","未开始",""],
+ ["（一）行政文件和药品信息","1.8 药物警戒与风险管理","","","","未开始",""],
+ ["（一）行政文件和药品信息","1.9 上市后研究","","","","未开始",""],
+ ["（一）行政文件和药品信息","1.10 申请人/生产企业证明性文件","","","","未开始",""],
+ ["（一）行政文件和药品信息","1.11 小微企业证明文件","","","","未开始",""],
+ ["（二）概要","2.1 品种概况","","","","未开始",""],
+ ["（二）概要","2.2 药学研究资料总结报告","","","","未开始",""],
+ ["（二）概要","2.3 药理毒理研究资料总结报告","","","","未开始",""],
+ ["（二）概要","2.4 临床研究资料总结报告","","","","未开始",""],
+ ["（二）概要","2.5 综合分析与评价","","","","未开始",""],
+ ["（三）药学研究资料","3.1 处方药味及药材资源评估","","","","未开始",""],
+ ["（三）药学研究资料","3.2 饮片炮制","","","","未开始",""],
+ ["（三）药学研究资料","3.3 制备工艺","","","","未开始",""],
+ ["（三）药学研究资料","3.4 制剂质量与质量标准研究","","","","未开始",""],
+ ["（三）药学研究资料","3.5 稳定性","","","","未开始",""],
+ ["（四）药理毒理研究资料","4.1 药理学研究资料","","","","未开始",""],
+ ["（四）药理毒理研究资料","4.2 药代动力学研究资料","","","","未开始",""],
+ ["（四）药理毒理研究资料","4.3 毒理学研究资料","","","","未开始",""],
+ ["（五）临床研究资料","5.1 中药创新药","","","","未开始",""],
+ ["（五）临床研究资料","5.2 中药改良型新药","","","","未开始",""],
+ ["（五）临床研究资料","5.3 古代经典名方中药复方制剂","","","","未开始",""],
+ ["（五）临床研究资料","5.4 同名同方药","","","","未开始",""],
+ ["（五）临床研究资料","5.5 临床试验期间的变更","","","","未开始",""],
 ];
 var defaultMile=[
  ["CRO完成筛选并签约","2027-04-30",false],"长周期毒理/稳定性项目需尽早启动，决定申报节奏",
@@ -361,30 +398,45 @@ function openProject(pid){
   showPage('dash',document.querySelectorAll('nav button')[0]);
   renderDash();renderTasks();renderFiles();renderMile();renderGantt();
 }
-function newProject(){
-  var name=prompt('新项目名称：');if(!name||!name.trim())return;
-  var leader=prompt('项目负责人（选填，直接回车跳过）：');if(leader===null)leader='';
-  var reg=prompt('注册分类（选填，如：中药1.1类 / 中药改良型新药2类，直接回车跳过）：');if(reg===null)reg='';
-  var p={id:Date.now(),name:name.trim(),leader:(leader||'').trim(),regClass:(reg||'').trim(),created_at:new Date().toISOString()};
-  projects.push(p);saveProjects();
-  localStorage.setItem(allKey(p.id),JSON.stringify(freshData(true,true)));
-  openProject(p.id);
+var pfEditingId=null;
+function newProject(){openProjForm(null);}
+function renameProject(pid){openProjForm(pid);}
+function openProjForm(pid){
+  pfEditingId=pid||null;
+  var p=pid?projects.find(function(x){return x.id===pid;}):null;
+  document.getElementById('pfTitle').textContent=p?'编辑项目信息':'新建项目';
+  document.getElementById('pfName').value=p?p.name:'';
+  document.getElementById('pfLeader').value=p?(p.leader||''):'';
+  document.getElementById('pfReg').value=p?(p.regClass||''):'';
+  document.getElementById('pfMsg').textContent='';
+  document.getElementById('projFormMask').style.display='flex';
 }
-function renameProject(pid){
-  var p=projects.find(function(x){return x.id===pid;});if(!p)return;
-  var name=prompt('项目名称：',p.name);if(name===null)return;
-  var leader=prompt('项目负责人（选填）：',p.leader||'');if(leader===null)leader=p.leader||'';
-  var reg=prompt('注册分类（选填）：',p.regClass||'');if(reg===null)reg=p.regClass||'';
-  p.name=(name||'').trim()||p.name;p.leader=(leader||'').trim();p.regClass=(reg||'').trim();
-  saveProjects();
-  if(pid===curPid){
-    curPname=p.name;
-    document.getElementById('curProjLabel').textContent='当前项目：'+p.name+
-      (p.leader?' ｜ 负责人：'+p.leader:'')+(p.regClass?' ｜ 注册分类：'+p.regClass:'');
-    cloudPush();
+function closeProjForm(){document.getElementById('projFormMask').style.display='none';}
+function submitProjForm(){
+  var name=document.getElementById('pfName').value.trim();
+  var leader=document.getElementById('pfLeader').value.trim();
+  var reg=document.getElementById('pfReg').value;
+  var msg=document.getElementById('pfMsg');
+  if(!name){msg.textContent='请填写项目名称';return;}
+  if(pfEditingId){
+    var p=projects.find(function(x){return x.id===pfEditingId;});if(!p){closeProjForm();return;}
+    p.name=name;p.leader=leader;p.regClass=reg;saveProjects();
+    if(p.id===curPid){
+      curPname=p.name;
+      document.getElementById('curProjLabel').textContent='当前项目：'+p.name+
+        (p.leader?' ｜ 负责人：'+p.leader:'')+(p.regClass?' ｜ 注册分类：'+p.regClass:'');
+      cloudPush();
+    }
+    else if(sb&&sbUser){sb.from('project_data').update({name:p.name,leader:p.leader||null,reg_class:p.regClass||null}).eq('id',p.id).then(function(){});}
+    renderProjView();
+  }else{
+    var np={id:Date.now(),name:name,leader:leader,regClass:reg,created_at:new Date().toISOString()};
+    projects.push(np);saveProjects();
+    localStorage.setItem(allKey(np.id),JSON.stringify(freshData(true,true)));
+    renderProjView();
+    openProject(np.id);
   }
-  else if(sb&&sbUser){sb.from('project_data').update({name:p.name,leader:p.leader||null,reg_class:p.regClass||null}).eq('id',pid).then(function(){});}
-  renderProjView();
+  closeProjForm();
 }
 async function delProject(pid){
   var p=projects.find(function(x){return x.id===pid;});if(!p)return;
@@ -459,26 +511,12 @@ function jumpTask(id){
 }
 
 /* ============ 甘特图 ============ */
-function renderGantt(){
-  var box=document.getElementById('ganttBox');
-  if(!DB.tasks.length){box.innerHTML='<div class="empty">暂无任务</div>';return;}
-  var mods=MODS();
-  var tasks=DB.tasks.slice().sort(function(a,b){
-    var d=mods.indexOf(a.mod)-mods.indexOf(b.mod);
-    if(d)return d;
-    return String(a.s).localeCompare(String(b.s));
-  });
-  var hasDate=function(t){return t.s&&t.e&&!isNaN(new Date(t.s))&&!isNaN(new Date(t.e));};
-  var dated=tasks.filter(hasDate);
-  if(!dated.length){box.innerHTML='<div class="empty">暂无已排期的任务（请先在任务清单中填写开始/结束日期）</div>';return;}
-  var min=Math.min.apply(null,dated.map(function(t){return new Date(t.s).getTime();}));
-  var max=Math.max.apply(null,dated.map(function(t){return new Date(t.e).getTime();}));
-  var m0=new Date(min); m0.setDate(1);
-  var m1=new Date(max); m1.setMonth(m1.getMonth()+1); m1.setDate(1);
+var ganttExpanded={};
+function toggleGanttMod(m){ganttExpanded[m]=!ganttExpanded[m];renderGantt();}
+function ganttAxisHtml(m0,m1){
   var months=[],cur=new Date(m0);
   while(cur<m1){months.push(new Date(cur));cur.setMonth(cur.getMonth()+1);}
-  var total=m1-m0;
-  var yearsHtml='', monthsHtml='', i=0;
+  var yearsHtml='',monthsHtml='',i=0;
   while(i<months.length){
     var y=months[i].getFullYear(),c=0;
     while(i+c<months.length&&months[i+c].getFullYear()===y)c++;
@@ -488,21 +526,62 @@ function renderGantt(){
   months.forEach(function(m,idx){
     monthsHtml+='<div class="g-month'+(m.getMonth()===0&&idx>0?' g-yb':'')+'">'+(m.getMonth()+1)+'月</div>';
   });
-  var h='<div class="g-head"><div class="g-task-col"></div><div class="g-timeline"><div class="g-years">'+yearsHtml+'</div></div></div>'+
-        '<div class="g-head g-head2"><div class="g-task-col">任务</div><div class="g-timeline"><div class="g-months">'+monthsHtml+'</div></div></div>';
-  tasks.forEach(function(t){
-    if(!hasDate(t)){
-      h+='<div class="g-row"><div class="g-name" title="'+esc(t.name)+'">'+esc(t.name)+'</div>'+
-         '<div class="g-track"><span class="g-nobar">未排期</span></div></div>';
-      return;
+  return '<div class="g-years">'+yearsHtml+'</div><div class="g-months">'+monthsHtml+'</div>';
+}
+function renderGantt(){
+  var box=document.getElementById('ganttBox');
+  if(!DB.tasks.length){box.innerHTML='<div class="empty">暂无任务</div>';return;}
+  var hasDate=function(t){return t.s&&t.e&&!isNaN(new Date(t.s))&&!isNaN(new Date(t.e));};
+  var html='';
+  MODS().forEach(function(m){
+    var items=DB.tasks.filter(function(t){return t.mod===m;});
+    var dated=items.filter(hasDate);
+    var open=!!ganttExpanded[m];
+    var head='<span class="gm-toggle">'+(open?'▼':'▶')+'</span>'+
+      '<span class="gm-title" onclick="toggleGanttMod(\''+m.replace(/'/g,'')+'\')">'+esc(m)+
+      '<span class="gm-count">（'+items.length+' 项）</span></span>';
+    html+='<div class="gm-block">';
+    if(!dated.length){
+      html+='<div class="gm-head">'+head+
+        '<span class="gm-hint">该模块暂无排期，请先在任务清单中填写开始/结束日期</span></div>';
+      if(open&&items.length){
+        html+='<div class="gm-rows">'+items.map(function(t){
+          return '<div class="g-row"><div class="g-name" title="'+esc(t.name)+'">'+esc(t.name)+'</div>'+
+                 '<div class="g-track"><span class="g-nobar">未排期</span></div></div>';
+        }).join('')+'</div>';
+      }
+      html+='</div>';return;
     }
-    var l=(new Date(t.s)-m0)/total*100, w=(new Date(t.e)-new Date(t.s))/total*100;
-    if(w<0.8)w=0.8;
-    h+='<div class="g-row"><div class="g-name" title="'+esc(t.name)+'">'+esc(t.name)+'</div>'+
-       '<div class="g-track"><div class="g-bar st-'+(t.st==='已完成'?'done':t.st==='进行中'?'doing':t.st==='暂停'?'hold':'todo')+'" '+
-       'style="left:'+l+'%;width:'+w+'%" title="'+esc(t.name)+' | '+t.s+' ~ '+t.e+' | '+t.st+'">'+esc(t.name)+'</div></div></div>';
+    var min=Math.min.apply(null,dated.map(function(t){return new Date(t.s).getTime();}));
+    var max=Math.max.apply(null,dated.map(function(t){return new Date(t.e).getTime();}));
+    var m0=new Date(min);m0.setDate(1);
+    var m1=new Date(max);m1.setMonth(m1.getMonth()+1);m1.setDate(1);
+    var total=m1-m0;
+    html+='<div class="gm-head">'+head+'<div class="g-timeline">'+ganttAxisHtml(m0,m1)+'</div></div>';
+    // 模块汇总行
+    var sMin=Math.min.apply(null,dated.map(function(t){return new Date(t.s).getTime();}));
+    var eMax=Math.max.apply(null,dated.map(function(t){return new Date(t.e).getTime();}));
+    var l=(sMin-m0)/total*100,w=(eMax-sMin)/total*100;if(w<0.8)w=0.8;
+    html+='<div class="gm-rows"><div class="g-row gm-summary">'+
+      '<div class="g-name">▸ 模块整体</div>'+
+      '<div class="g-track"><div class="g-bar gm-bar-sum" style="left:'+l+'%;width:'+w+'%" title="'+esc(m)+' | '+new Date(sMin).toISOString().slice(0,10)+' ~ '+new Date(eMax).toISOString().slice(0,10)+'"></div></div></div>';
+    if(open){
+      items.forEach(function(t){
+        if(!hasDate(t)){
+          html+='<div class="g-row"><div class="g-name" title="'+esc(t.name)+'">'+esc(t.name)+'</div>'+
+               '<div class="g-track"><span class="g-nobar">未排期</span></div></div>';
+          return;
+        }
+        var ll=(new Date(t.s)-m0)/total*100, ww=(new Date(t.e)-new Date(t.s))/total*100;
+        if(ww<0.8)ww=0.8;
+        html+='<div class="g-row"><div class="g-name" title="'+esc(t.name)+'">'+esc(t.name)+'</div>'+
+          '<div class="g-track"><div class="g-bar st-'+(t.st==='已完成'?'done':t.st==='进行中'?'doing':t.st==='暂停'?'hold':'todo')+'" '+
+          'style="left:'+ll+'%;width:'+ww+'%" title="'+esc(t.name)+' | '+t.s+' ~ '+t.e+' | '+t.st+'">'+esc(t.name)+'</div></div></div>';
+      });
+    }
+    html+='</div></div>';
   });
-  box.innerHTML=h;
+  box.innerHTML=html;
 }
 /* ============ 任务 ============ */
 var editingId=null, adding=false;
