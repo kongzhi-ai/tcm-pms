@@ -82,6 +82,9 @@ tr:hover td{background:#f8fbfc}
 .sbtn{background:#eef3f5;border:1px solid #d6dee2;border-radius:4px;color:var(--primary);cursor:pointer;font-size:11px;padding:1px 6px;margin-left:4px;font-family:inherit}
 .sbtn:hover{background:var(--primary);color:#fff}
 .g-nobar{font-size:11px;color:var(--muted);background:#f0f3f5;border-radius:4px;padding:1px 8px}
+.modhead td{background:#eef4f6;color:var(--primary-dark);font-weight:600;font-size:13px;padding:8px}
+.lv2{color:var(--primary)}
+.lv3{color:var(--muted)}
 .gm-block{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;margin-bottom:16px}
 .gm-head{display:flex;align-items:center;gap:10px;border-bottom:1px solid #edf1f3;padding-bottom:8px;margin-bottom:6px}
 .gm-toggle{cursor:pointer;color:var(--primary);font-size:12px;width:16px;text-align:center;flex-shrink:0;user-select:none}
@@ -180,8 +183,8 @@ input[type=email],input[type=password]{padding:8px 10px;border:1px solid #d6dee2
     <h2 class="section"><a href="javascript:void(0)" onclick="backFiles()" style="color:var(--primary);text-decoration:none">← 返回</a>　<span id="fdTitle"></span></h2>
     <div class="card">
       <div class="toolbar">
-        <button class="btn" onclick="uploadFile(curFileMod)">⬆ 上传文件</button>
-        <button class="btn sm" onclick="addFile(curFileMod)">＋ 添加链接</button>
+        <button class="btn" onclick="uploadFile(curFileId)">⬆ 上传文件</button>
+        <button class="btn sm" onclick="addFile(curFileId)">＋ 添加链接</button>
         <span style="flex:1"></span>
         <span style="font-size:13px;color:var(--muted);align-self:center">排序：</span>
         <select onchange="setFileSort(this.value)">
@@ -266,37 +269,47 @@ input[type=email],input[type=password]{padding:8px 10px;border:1px solid #d6dee2
 var MODULES = ["（一）行政文件和药品信息","（二）概要","（三）药学研究资料","（四）药理毒理研究资料","（五）临床研究资料"];
 var STATUSES = ["未开始","进行中","已完成","暂停"];
 var KEY='tcmPmsV1';
-var defaultTasks=[
- ["（一）行政文件和药品信息","1.0 说明函","","","","未开始",""],
- ["（一）行政文件和药品信息","1.1 目录","","","","未开始",""],
- ["（一）行政文件和药品信息","1.2 申请表","","","","未开始",""],
- ["（一）行政文件和药品信息","1.3 产品信息相关材料","","","","未开始",""],
- ["（一）行政文件和药品信息","1.4 申请状态","","","","未开始",""],
- ["（一）行政文件和药品信息","1.5 加快上市注册程序申请","","","","未开始",""],
- ["（一）行政文件和药品信息","1.6 沟通交流会议","","","","未开始",""],
- ["（一）行政文件和药品信息","1.7 临床试验过程管理信息","","","","未开始",""],
- ["（一）行政文件和药品信息","1.8 药物警戒与风险管理","","","","未开始",""],
- ["（一）行政文件和药品信息","1.9 上市后研究","","","","未开始",""],
- ["（一）行政文件和药品信息","1.10 申请人/生产企业证明性文件","","","","未开始",""],
- ["（一）行政文件和药品信息","1.11 小微企业证明文件","","","","未开始",""],
- ["（二）概要","2.1 品种概况","","","","未开始",""],
- ["（二）概要","2.2 药学研究资料总结报告","","","","未开始",""],
- ["（二）概要","2.3 药理毒理研究资料总结报告","","","","未开始",""],
- ["（二）概要","2.4 临床研究资料总结报告","","","","未开始",""],
- ["（二）概要","2.5 综合分析与评价","","","","未开始",""],
- ["（三）药学研究资料","3.1 处方药味及药材资源评估","","","","未开始",""],
- ["（三）药学研究资料","3.2 饮片炮制","","","","未开始",""],
- ["（三）药学研究资料","3.3 制备工艺","","","","未开始",""],
- ["（三）药学研究资料","3.4 制剂质量与质量标准研究","","","","未开始",""],
- ["（三）药学研究资料","3.5 稳定性","","","","未开始",""],
- ["（四）药理毒理研究资料","4.1 药理学研究资料","","","","未开始",""],
- ["（四）药理毒理研究资料","4.2 药代动力学研究资料","","","","未开始",""],
- ["（四）药理毒理研究资料","4.3 毒理学研究资料","","","","未开始",""],
- ["（五）临床研究资料","5.1 中药创新药","","","","未开始",""],
- ["（五）临床研究资料","5.2 中药改良型新药","","","","未开始",""],
- ["（五）临床研究资料","5.3 古代经典名方中药复方制剂","","","","未开始",""],
- ["（五）临床研究资料","5.4 同名同方药","","","","未开始",""],
- ["（五）临床研究资料","5.5 临床试验期间的变更","","","","未开始",""],
+var defaultTree=[
+ {mod:'（一）行政文件和药品信息',items:[
+   {name:'1.0 说明函',s:0,e:1,subs:[]},
+   {name:'1.1 目录',s:0,e:1,subs:[]},
+   {name:'1.2 申请表',s:1,e:2,subs:[]},
+   {name:'1.3 产品信息相关材料',s:2,e:5,subs:['1.3.1 说明书','1.3.2 包装标签','1.3.3 产品质量标准和生产工艺','1.3.4 古代经典名方关键信息','1.3.5 药品通用名称核准申请材料','1.3.6 检查相关信息','1.3.7 产品相关证明性文件','1.3.8 其他产品信息相关材料']},
+   {name:'1.4 申请状态',s:4,e:8,subs:['1.4.1 既往批准情况','1.4.2 申请调整临床试验方案、暂停或者终止临床试验','1.4.3 暂停后申请恢复临床试验','1.4.4 终止后重新申请临床试验','1.4.5 申请撤回尚未批准的药物临床试验申请、上市注册许可申请','1.4.6 申请上市注册审评期间变更仅包括申请人更名、变更注册地址名称等不涉及技术审评内容的变更','1.4.7 申请注销药品注册证书']},
+   {name:'1.5 加快上市注册程序申请',s:3,e:5,subs:['1.5.1 加快上市注册程序申请','1.5.2 加快上市注册程序终止申请','1.5.3 其他加快注册程序申请']},
+   {name:'1.6 沟通交流会议',s:2,e:7,subs:['1.6.1 会议申请','1.6.2 会议背景资料','1.6.3 会议相关信函、会议纪要以及答复']},
+   {name:'1.7 临床试验过程管理信息',s:10,e:22,subs:['1.7.1 临床试验期间增加功能主治','1.7.2 临床试验方案变更、非临床或者药学的变化或者新发现等可能增加受试者安全性风险的','1.7.3 要求申办者调整临床试验方案、暂停或终止药物临床试验']},
+   {name:'1.8 药物警戒与风险管理',s:10,e:22,subs:['1.8.1 研发期间安全性更新报告及附件','1.8.2 其他潜在的严重安全性风险信息','1.8.3 风险管理计划']},
+   {name:'1.9 上市后研究',s:22,e:28,subs:[]},
+   {name:'1.10 申请人/生产企业证明性文件',s:1,e:3,subs:['1.10.1 境内生产药品申请人/生产企业资质证明文件','1.10.2 境外生产药品申请人/生产企业资质证明文件','1.10.3 注册代理机构证明文件']},
+   {name:'1.11 小微企业证明文件',s:1,e:2,subs:[]}
+ ]},
+ {mod:'（二）概要',items:[
+   {name:'2.1 品种概况',s:0,e:2,subs:[]},
+   {name:'2.2 药学研究资料总结报告',s:13,e:15,subs:['2.2.1 药学主要研究结果总结','2.2.2 药学研究结果分析与评价','2.2.3 参考文献']},
+   {name:'2.3 药理毒理研究资料总结报告',s:15,e:17,subs:['2.3.1 药理毒理试验策略概述','2.3.2 药理学研究总结','2.3.3 药代动力学研究总结','2.3.4 毒理学研究总结','2.3.5 综合分析与评价','2.3.6 参考文献']},
+   {name:'2.4 临床研究资料总结报告',s:19,e:21,subs:['2.4.1 中医药理论或研究背景','2.4.2 人用经验','2.4.3 临床试验资料综述','2.4.4 临床价值评估','2.4.5 参考文献']},
+   {name:'2.5 综合分析与评价',s:21,e:22,subs:[]}
+ ]},
+ {mod:'（三）药学研究资料',items:[
+   {name:'3.1 处方药味及药材资源评估',s:1,e:4,subs:['3.1.1 处方药味','3.1.2 药材资源评估','3.1.3 参考文献']},
+   {name:'3.2 饮片炮制',s:4,e:7,subs:['3.2.1 饮片炮制方法','3.2.2 参考文献']},
+   {name:'3.3 制备工艺',s:6,e:11,subs:['3.3.1 处方','3.3.2 制法','3.3.3 剂型及原辅料情况','3.3.4 制备工艺研究资料','3.3.5 中试和生产工艺验证','3.3.6 试验用样品制备情况','3.3.7 “生产工艺”资料','3.3.8 参考文献']},
+   {name:'3.4 制剂质量与质量标准研究',s:9,e:14,subs:['3.4.1 化学成份研究','3.4.2 质量研究','3.4.3 质量标准','3.4.4 样品检验报告','3.4.5 参考文献']},
+   {name:'3.5 稳定性',s:12,e:25,subs:['3.5.1 稳定性总结','3.5.2 稳定性研究数据','3.5.3 直接接触药品的包装材料和容器的选择','3.5.4 上市后的稳定性研究方案及承诺','3.5.5 参考文献']}
+ ]},
+ {mod:'（四）药理毒理研究资料',items:[
+   {name:'4.1 药理学研究资料',s:7,e:13,subs:['4.1.1 主要药效学','4.1.2 次要药效学','4.1.3 安全药理学','4.1.4 药效学药物相互作用']},
+   {name:'4.2 药代动力学研究资料',s:9,e:14,subs:['4.2.1 分析方法及验证报告','4.2.2 吸收','4.2.3 分布','4.2.4 代谢','4.2.5 排泄','4.2.6 药代动力学药物相互作用','4.2.7 其他药代试验']},
+   {name:'4.3 毒理学研究资料',s:11,e:21,subs:['4.3.1 单次给药毒性试验','4.3.2 重复给药毒性试验','4.3.3 遗传毒性试验','4.3.4 致癌性试验','4.3.5 生殖毒性试验','4.3.6 制剂安全性试验','4.3.7 其他毒性试验']}
+ ]},
+ {mod:'（五）临床研究资料',items:[
+   {name:'5.1 中药创新药',s:16,e:27,subs:['5.1.1 处方组成符合中医药理论、具有人用经验的创新药','5.1.2 其他来源的创新药']},
+   {name:'5.2 中药改良型新药',s:16,e:27,subs:['5.2.1 研究背景','5.2.2 临床试验','5.2.3 临床价值评估']},
+   {name:'5.3 古代经典名方中药复方制剂',s:16,e:26,subs:['5.3.1 按古代经典名方目录管理的中药复方制剂','5.3.2 其他来源于古代经典名方的中药复方制剂']},
+   {name:'5.4 同名同方药',s:16,e:26,subs:['5.4.1 研究背景','5.4.2 临床试验']},
+   {name:'5.5 临床试验期间的变更',s:22,e:28,subs:[]}
+ ]}
 ];
 var defaultMile=[
  ["CRO完成筛选并签约","2027-04-30",false],"长周期毒理/稳定性项目需尽早启动，决定申报节奏",
@@ -316,19 +329,37 @@ function saveProjects(){localStorage.setItem(KEY+'_projects',JSON.stringify(proj
 function freshData(withTemplate,noDates){
   var d={tasks:[],nextId:1,files:{},miles:[],modules:MODULES.slice()};
   if(withTemplate){
-    d.tasks=defaultTasks.map(function(t,i){return {id:i+1,mod:t[0],name:t[1],s:noDates?'':t[2],e:noDates?'':t[3],owner:t[4],st:t[5],deliver:t[6]};});
-    d.nextId=defaultTasks.length+1;
+    var base=new Date(); base.setDate(1);
+    function fmtD(dt){return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');}
+    function addM(m){return new Date(base.getFullYear(),base.getMonth()+m,1);}
+    var idc=1;
+    defaultTree.forEach(function(g){
+      g.items.forEach(function(it){
+        var sD=addM(it.s), eD=addM(it.e);
+        var pid=idc++;
+        d.tasks.push({id:pid,mod:g.mod,name:it.name,parent:null,s:fmtD(sD),e:fmtD(eD),owner:'',st:'未开始',deliver:''});
+        if(it.subs&&it.subs.length){
+          var total=Math.max(1,Math.round((eD-sD)/86400000));
+          it.subs.forEach(function(sn,k){
+            var cs=new Date(sD.getTime()+Math.round(total*k/it.subs.length)*86400000);
+            var ce=new Date(sD.getTime()+Math.round(total*(k+1)/it.subs.length)*86400000);
+            d.tasks.push({id:idc++,mod:g.mod,name:sn,parent:pid,s:fmtD(cs),e:fmtD(ce),owner:'',st:'未开始',deliver:''});
+          });
+        }
+      });
+    });
+    d.nextId=idc;
     d.miles=[
-      {t:"药材与饮片研究完成",d:noDates?'':'2027-04-30',done:false},
-      {t:"小试工艺确定",d:noDates?'':'2027-08-31',done:false},
-      {t:"CRO签约（毒理+药效）",d:noDates?'':'2027-04-30',done:false},
-      {t:"质量标准草案定稿",d:noDates?'':'2028-02-15',done:false},
-      {t:"方法学验证完成",d:noDates?'':'2028-04-30',done:false},
-      {t:"中试3批完成",d:noDates?'':'2028-06-30',done:false},
-      {t:"临床试验方案定稿",d:noDates?'':'2028-08-31',done:false},
-      {t:"CTD资料齐套",d:noDates?'':'2028-09-30',done:false},
-      {t:"CDE受理",d:noDates?'':'2028-10-31',done:false},
-      {t:"取得临床批件",d:noDates?'':'2029-04-30',done:false}
+      {t:"药材与饮片研究完成",d:fmtD(addM(4)),done:false},
+      {t:"小试工艺确定",d:fmtD(addM(8)),done:false},
+      {t:"CRO签约（毒理+药效）",d:fmtD(addM(4)),done:false},
+      {t:"质量标准草案定稿",d:fmtD(addM(14)),done:false},
+      {t:"方法学验证完成",d:fmtD(addM(15)),done:false},
+      {t:"中试3批完成",d:fmtD(addM(11)),done:false},
+      {t:"临床试验方案定稿",d:fmtD(addM(16)),done:false},
+      {t:"CTD资料齐套",d:fmtD(addM(22)),done:false},
+      {t:"CDE受理",d:fmtD(addM(23)),done:false},
+      {t:"取得临床批件",d:fmtD(addM(27)),done:false}
     ];
   }
   return d;
@@ -432,7 +463,7 @@ function submitProjForm(){
   }else{
     var np={id:Date.now(),name:name,leader:leader,regClass:reg,created_at:new Date().toISOString()};
     projects.push(np);saveProjects();
-    localStorage.setItem(allKey(np.id),JSON.stringify(freshData(true,true)));
+    localStorage.setItem(allKey(np.id),JSON.stringify(freshData(true)));
     renderProjView();
     openProject(np.id);
   }
@@ -465,18 +496,6 @@ function showPage(id,btn){
 }
 
 /* ============ 看板 ============ */
-function moveModule(m,dir){
-  var i=DB.modules.indexOf(m);if(i<0)return;
-  var j=i+dir;if(j<0||j>=DB.modules.length)return;
-  var t=DB.modules[i];DB.modules[i]=DB.modules[j];DB.modules[j]=t;
-  save();renderDash();
-}
-function addModule(){
-  var name=prompt('新板块名称：');if(!name||!name.trim())return;
-  name=name.trim();
-  if(DB.modules.indexOf(name)>=0){alert('板块已存在');return;}
-  DB.modules.push(name);save();renderDash();toast('已添加板块');
-}
 function renderMileBanner(){
   var el=document.getElementById('mileBanner');if(!el)return;
   var ms=(DB.miles||[]).filter(function(m){return !m.done&&m.d;})
@@ -487,15 +506,12 @@ function renderDash(){
   renderMileBanner();
   var box=document.getElementById('board');box.innerHTML='';
   MODS().forEach(function(m){
-    var ts=DB.tasks.filter(function(t){return t.mod===m;});
+    var ts=DB.tasks.filter(function(t){return t.mod===m&&!t.parent;});
     var done=ts.filter(function(t){return t.st==='已完成';}).length;
     var pct=ts.length?Math.round(done/ts.length*100):0;
     var doing=ts.filter(function(t){return t.st==='进行中';}).length;
-    var mq=m.replace(/'/g,'');
-    var html='<div class="mod"><h3>'+esc(m)+'<span class="moves">'+
-      '<button class="sbtn" title="上移" onclick="moveModule(\''+mq+'\',-1)">↑</button>'+
-      '<button class="sbtn" title="下移" onclick="moveModule(\''+mq+'\',1)">↓</button></span></h3>'+
-      '<div class="phase">共 '+ts.length+' 项任务 · 进行中 '+doing+' 项</div>'+
+    var html='<div class="mod"><h3>'+esc(m)+'</h3>'+
+      '<div class="phase">共 '+ts.length+' 项 · 进行中 '+doing+' 项</div>'+
       '<div class="bar-wrap"><div class="bar" style="width:'+pct+'%"></div></div>'+
       '<div class="pct"><span>完成进度</span><span>'+pct+'%</span></div><ul>';
     ts.forEach(function(t){
@@ -504,7 +520,6 @@ function renderDash(){
     });
     html+='</ul></div>';box.innerHTML+=html;
   });
-  box.innerHTML+='<div class="mod addmod" onclick="addModule()"><div>＋</div><div>添加板块</div></div>';
 }
 function jumpTask(id){
   showPage('tasks',document.querySelectorAll('nav button')[2]);startEdit(id);
@@ -535,7 +550,7 @@ function renderGantt(){
   var html='';
   MODS().forEach(function(m){
     var items=DB.tasks.filter(function(t){return t.mod===m;});
-    var dated=items.filter(hasDate);
+    var dated=items.filter(function(t){return hasDate(t)&&!t.parent;});
     var open=!!ganttExpanded[m];
     var head='<span class="gm-toggle">'+(open?'▼':'▶')+'</span>'+
       '<span class="gm-title" onclick="toggleGanttMod(\''+m.replace(/'/g,'')+'\')">'+esc(m)+
@@ -546,7 +561,7 @@ function renderGantt(){
         '<span class="gm-hint">该模块暂无排期，请先在任务清单中填写开始/结束日期</span></div>';
       if(open&&items.length){
         html+='<div class="gm-rows">'+items.map(function(t){
-          return '<div class="g-row"><div class="g-name" title="'+esc(t.name)+'">'+esc(t.name)+'</div>'+
+          return '<div class="g-row"><div class="g-name" title="'+esc(t.name)+'">'+(t.parent?'└ ':'')+esc(t.name)+'</div>'+
                  '<div class="g-track"><span class="g-nobar">未排期</span></div></div>';
         }).join('')+'</div>';
       }
@@ -567,14 +582,15 @@ function renderGantt(){
       '<div class="g-track"><div class="g-bar gm-bar-sum" style="left:'+l+'%;width:'+w+'%" title="'+esc(m)+' | '+new Date(sMin).toISOString().slice(0,10)+' ~ '+new Date(eMax).toISOString().slice(0,10)+'"></div></div></div>';
     if(open){
       items.forEach(function(t){
+        var pre=t.parent?'└ ':'';
         if(!hasDate(t)){
-          html+='<div class="g-row"><div class="g-name" title="'+esc(t.name)+'">'+esc(t.name)+'</div>'+
+          html+='<div class="g-row"><div class="g-name" title="'+esc(t.name)+'">'+pre+esc(t.name)+'</div>'+
                '<div class="g-track"><span class="g-nobar">未排期</span></div></div>';
           return;
         }
         var ll=(new Date(t.s)-m0)/total*100, ww=(new Date(t.e)-new Date(t.s))/total*100;
         if(ww<0.8)ww=0.8;
-        html+='<div class="g-row"><div class="g-name" title="'+esc(t.name)+'">'+esc(t.name)+'</div>'+
+        html+='<div class="g-row"><div class="g-name" title="'+esc(t.name)+'">'+pre+esc(t.name)+'</div>'+
           '<div class="g-track"><div class="g-bar st-'+(t.st==='已完成'?'done':t.st==='进行中'?'doing':t.st==='暂停'?'hold':'todo')+'" '+
           'style="left:'+ll+'%;width:'+ww+'%" title="'+esc(t.name)+' | '+t.s+' ~ '+t.e+' | '+t.st+'">'+esc(t.name)+'</div></div></div>';
       });
@@ -598,6 +614,7 @@ function editRowHtml(t){
    '<td style="white-space:nowrap"><button class="btn sm" style="background:var(--primary);color:#fff" onclick="saveTask('+t.id+')">保存</button> '+
    '<button class="btn sm" onclick="cancelEdit()">取消</button></td></tr>';
 }
+function childrenOf(id){return DB.tasks.filter(function(x){return x.parent===id;});}
 function renderTasks(){
   var fm=document.getElementById('fMod').value, fs=document.getElementById('fStatus').value;
   var sel=document.getElementById('fMod');
@@ -605,20 +622,37 @@ function renderTasks(){
   MODS().forEach(function(m){var o=document.createElement('option');o.textContent=m;sel.appendChild(o);});
   sel.value=fm;
   var tb=document.getElementById('taskBody');tb.innerHTML='';
-  if(adding){tb.innerHTML+=editRowHtml({id:0,mod:fm||MODULES[0],name:'',s:'',e:'',owner:'',st:'未开始',deliver:''});}
-  DB.tasks.filter(function(t){return (!fm||t.mod===fm)&&(!fs||t.st===fs);})
-  .sort(function(a,b){var ma=MODS(),d=ma.indexOf(a.mod)-ma.indexOf(b.mod);if(d)return d;return String(a.s).localeCompare(String(b.s));})
-  .forEach(function(t){
-    if(t.id===editingId){tb.innerHTML+=editRowHtml(t);return;}
-    tb.innerHTML+='<tr><td>'+esc(t.mod)+'</td><td><b class="tname" onclick="startEdit('+t.id+')">'+esc(t.name)+'</b>'+
+  if(adding){tb.innerHTML+=editRowHtml({id:0,mod:fm||MODULES[0],name:'',s:'',e:'',owner:'',st:'未开始',deliver:'',parent:null});}
+  var mods=MODS(), anyRow=false;
+  mods.forEach(function(m){
+    var list=DB.tasks.filter(function(t){return t.mod===m;});
+    var vis=list.filter(function(t){return (!fm||t.mod===fm)&&(!fs||t.st===fs);});
+    if(!vis.length)return;
+    anyRow=true;
+    tb.innerHTML+='<tr class="modhead"><td colspan="7">'+esc(m)+'</td></tr>';
+    list.forEach(function(t){
+      if(vis.indexOf(t)<0)return;
+      if(editingId===t.id){tb.innerHTML+=editRowHtml(t);return;}
+      var pre=t.parent?'<span class="lv3">└ </span>':'<span class="lv2">▸ </span>';
+      var pad=t.parent?'padding-left:34px':'padding-left:14px';
+      var childBtn=(!t.parent&&childrenOf(t.id).length===0)?' <button class="btn sm" onclick="addChild('+t.id+')">＋子项</button>':'';
+      tb.innerHTML+='<tr><td></td>'+
+      '<td style="'+pad+'">'+pre+'<b class="tname" onclick="startEdit('+t.id+')">'+esc(t.name)+'</b>'+childBtn+
       (t.deliver?'<br><span style="font-size:12px;color:var(--muted)">交付物：'+esc(t.deliver)+'</span>':'')+'</td>'+
       '<td style="white-space:nowrap">'+t.s+'</td><td style="white-space:nowrap">'+t.e+'</td><td>'+esc(t.owner||'—')+'</td>'+
       '<td><span class="badge b-'+t.st+'">'+t.st+'</span></td>'+
       '<td style="white-space:nowrap"><button class="btn sm" onclick="cycleStatus('+t.id+')">流转状态</button> '+
       '<button class="btn sm" onclick="startEdit('+t.id+')">编辑</button> '+
       '<button class="btn sm del" onclick="delTask('+t.id+')">删除</button></td></tr>';
+    });
   });
-  if(!tb.innerHTML)tb.innerHTML='<tr><td colspan="7" class="empty">没有匹配的任务</td></tr>';
+  if(!anyRow&&!adding)tb.innerHTML='<tr><td colspan="7" class="empty">没有匹配的任务</td></tr>';
+}
+function addChild(pid){
+  var p=DB.tasks.find(function(x){return x.id===pid;});if(!p)return;
+  var nt={id:DB.nextId++,mod:p.mod,name:'新子项',parent:pid,s:'',e:'',owner:'',st:'未开始',deliver:''};
+  DB.tasks.splice(DB.tasks.indexOf(p)+1,0,nt);
+  save();renderTasks();startEdit(nt.id);
 }
 function startEdit(id){editingId=id;adding=false;renderTasks();}
 function startAdd(){adding=true;editingId=null;renderTasks();}
@@ -631,7 +665,7 @@ function saveTask(id){
     st:document.getElementById('eSt').value,
     deliver:document.getElementById('eDeliver').value.trim()};
   if(!v.name){alert('任务名称不能为空');return;}
-  if(id===0){v.id=DB.nextId++;DB.tasks.push(v);}
+  if(id===0){v.id=DB.nextId++;v.parent=null;DB.tasks.push(v);}
   else{var t=DB.tasks.find(function(x){return x.id===id;});for(var k in v)t[k]=v[k];}
   editingId=null;adding=false;save();renderTasks();toast('已保存');
 }
@@ -641,28 +675,36 @@ function cycleStatus(id){
   save();renderTasks();toast('状态已更新为：'+t.st);
 }
 function delTask(id){
-  if(!confirm('确定删除该任务？'))return;
-  DB.tasks=DB.tasks.filter(function(x){return x.id!==id;});save();renderTasks();toast('已删除');
+  var kids=DB.tasks.filter(function(x){return x.parent===id;}).length;
+  if(!confirm('确定删除该任务'+(kids?'（含 '+kids+' 个子项，一并删除）':'')+'？'))return;
+  DB.tasks=DB.tasks.filter(function(x){return x.id!==id&&x.parent!==id;});save();renderTasks();toast('已删除');
 }
 
 /* ============ 文件 ============ */
-var upMod=null, curFileMod=null, fileSort='time';
+var fileSort='time';
 function getTs(f){if(f.ts)return f.ts;var m=(f.path||'').match(/\/(\d{10,14})\./);return m?+m[1]:0;}
 function getExt(f){var m=(f.name||'').match(/\.([A-Za-z0-9]+)$/);return m?m[1].toLowerCase():'';}
 function fmtSize(s){return s?(s/1048576>=1?(s/1048576).toFixed(1)+' MB':Math.ceil(s/1024)+' KB'):'—';}
+function fileKey(id){return 't'+id;}
 function renderFiles(){
   var box=document.getElementById('fileBox');box.innerHTML='';
   MODS().forEach(function(m){
-    var fs=DB.files[m]||[];
-    var latest=null;
-    fs.forEach(function(f){if(!latest||getTs(f)>getTs(latest))latest=f;});
-    box.innerHTML+='<div class="mod filecard" onclick="openFileDetail(\''+m.replace(/'/g,'')+'\')"><h3>'+esc(m)+'</h3>'+
-      '<div class="phase">共 '+fs.length+' 个文件'+(latest?' · 最新：'+esc(latest.name):'')+'</div>'+
-      '<div style="font-size:12px;color:var(--primary);margin-top:16px">点击进入管理 →</div></div>';
+    var l2=DB.tasks.filter(function(t){return t.mod===m&&!t.parent;});
+    if(!l2.length)return;
+    box.innerHTML+='<div style="grid-column:1/-1"><h3 style="color:var(--primary-dark);font-size:15px;margin:8px 0 0">'+esc(m)+'</h3></div>';
+    l2.forEach(function(t){
+      var fs=DB.files[fileKey(t.id)]||[];
+      var latest=null;
+      fs.forEach(function(f){if(!latest||getTs(f)>getTs(latest))latest=f;});
+      box.innerHTML+='<div class="mod filecard" onclick="openFileDetail('+t.id+')"><h3 style="font-size:14px">'+esc(t.name)+'</h3>'+
+        '<div class="phase">共 '+fs.length+' 个文件'+(latest?' · 最新：'+esc(latest.name):'')+'</div>'+
+        '<div style="font-size:12px;color:var(--primary);margin-top:16px">点击进入管理 →</div></div>';
+    });
   });
 }
-function openFileDetail(mod){
-  curFileMod=mod;
+var curFileId=null;
+function openFileDetail(id){
+  curFileId=id;
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   document.getElementById('filedetail').classList.add('active');
   renderFileDetail();
@@ -676,10 +718,11 @@ function backFiles(){
 function setFileSort(s){fileSort=s;renderFileDetail();}
 function refreshFileViews(){renderFiles();if(document.getElementById('filedetail').classList.contains('active'))renderFileDetail();}
 function renderFileDetail(){
-  var mod=curFileMod;
-  document.getElementById('fdTitle').textContent=mod+' · 共 '+(DB.files[mod]||[]).length+' 个文件';
+  var key=fileKey(curFileId);
+  var t=DB.tasks.find(function(x){return x.id===curFileId;});
+  document.getElementById('fdTitle').textContent=(t?t.name:'')+' · 共 '+((DB.files[key]||[]).length)+' 个文件';
   var tb=document.getElementById('fdBody');tb.innerHTML='';
-  var fs=(DB.files[mod]||[]).slice();
+  var fs=(DB.files[key]||[]).slice();
   fs.sort(function(a,b){
     if(fileSort==='name')return (a.name||'').localeCompare(b.name||'','zh');
     if(fileSort==='type')return getExt(a).localeCompare(getExt(b))||getTs(b)-getTs(a);
@@ -687,32 +730,33 @@ function renderFileDetail(){
   });
   if(!fs.length){tb.innerHTML='<tr><td colspan="5" class="empty">暂无文件，点左上角上传</td></tr>';return;}
   fs.forEach(function(f){
-    var i=(DB.files[mod]||[]).indexOf(f);
+    var i=(DB.files[key]||[]).indexOf(f);
     var ext=getExt(f);
     var typeTxt=f.path?(ext?ext.toUpperCase()+' 文件':'文件'):'外部链接';
     tb.innerHTML+='<tr><td>'+esc(f.name)+'</td><td>'+typeTxt+'</td><td>'+fmtSize(f.size)+'</td><td>'+(f.time||'—')+'</td>'+
     '<td style="white-space:nowrap">'+
-    '<button class="btn sm" onclick="previewFile(\''+mod.replace(/'/g,'')+'\','+i+')">预览</button> '+
+    '<button class="btn sm" onclick="previewFile('+curFileId+','+i+')">预览</button> '+
     (f.path?'<button class="btn sm" onclick="downloadFile(\''+f.path+'\',\''+String(f.name).replace(/'/g,'')+'\')">下载</button> '
           :'<a class="btn sm" href="'+esc(f.url)+'" target="_blank" style="text-decoration:none">打开</a> ')+
-    '<button class="btn sm del" onclick="delFile(\''+mod.replace(/'/g,'')+'\','+i+')">删</button></td></tr>';
+    '<button class="btn sm del" onclick="delFile('+curFileId+','+i+')">删</button></td></tr>';
   });
 }
-function uploadFile(mod){
+var upId=null;
+function uploadFile(id){
   if(!sb||!sbUser){toast('登录后才能上传文件');return;}
-  upMod=mod;
+  upId=id;
   var inp=document.getElementById('fileUp');inp.value='';inp.click();
 }
 async function doUpload(ev){
-  var f=ev.target.files[0];if(!f||!upMod)return;
-  var idx=MODS().indexOf(upMod);
+  var f=ev.target.files[0];if(!f||!upId)return;
   var ext=(f.name.match(/\.[A-Za-z0-9]{1,10}$/)||[''])[0].toLowerCase();
-  var path='m'+(idx+1)+'/'+Date.now()+ext;
+  var path='t'+upId+'/'+Date.now()+ext;
   toast('正在上传：'+f.name+' …');
   var r=await sb.storage.from('project-files').upload(path,f);
   if(r.error){alert('上传失败：'+r.error.message+'\n请确认已按说明创建存储空间');return;}
-  if(!DB.files[upMod])DB.files[upMod]=[];
-  DB.files[upMod].push({name:f.name,path:path,size:f.size,ts:Date.now(),time:new Date().toLocaleString('zh-CN')});
+  var key=fileKey(upId);
+  if(!DB.files[key])DB.files[key]=[];
+  DB.files[key].push({name:f.name,path:path,size:f.size,ts:Date.now(),time:new Date().toLocaleString('zh-CN')});
   save();refreshFileViews();toast('上传完成');
 }
 async function downloadFile(path,name){
@@ -722,8 +766,8 @@ async function downloadFile(path,name){
   var a=document.createElement('a');a.href=URL.createObjectURL(r.data);a.download=name;a.click();
   setTimeout(function(){URL.revokeObjectURL(a.href);},3000);
 }
-async function previewFile(mod,i){
-  var f=DB.files[mod][i];
+async function previewFile(id,i){
+  var f=DB.files[fileKey(id)][i];
   if(!f.path){window.open(f.url,'_blank');return;}
   if(!sb||!sbUser){toast('请先登录');return;}
   var mask=document.getElementById('pvMask'),box=document.getElementById('pvBox');
@@ -739,18 +783,20 @@ async function previewFile(mod,i){
   else box.innerHTML='<div class="empty" style="text-align:center;padding:30px 0">该格式（'+(ext||'未知').toUpperCase()+'）暂不支持在线预览，请下载后查看</div>';
 }
 function closePv(){document.getElementById('pvMask').style.display='none';}
-function addFile(mod){
+function addFile(id){
   var name=prompt('文件名/说明：');if(!name)return;
   var url=prompt('链接地址（可填网盘分享链接、在线文档地址等）：','http://');if(url===null)return;
-  if(!DB.files[mod])DB.files[mod]=[];
-  DB.files[mod].push({name:name,url:url,ts:Date.now(),time:new Date().toLocaleString('zh-CN')});
+  var key=fileKey(id);
+  if(!DB.files[key])DB.files[key]=[];
+  DB.files[key].push({name:name,url:url,ts:Date.now(),time:new Date().toLocaleString('zh-CN')});
   save();refreshFileViews();toast('已添加');
 }
-async function delFile(mod,i){
-  if(!confirm('删除该文件记录'+(DB.files[mod][i].path?'及云端文件':'')+'？'))return;
-  var f=DB.files[mod][i];
+async function delFile(id,i){
+  var key=fileKey(id);
+  if(!confirm('删除该文件记录'+(DB.files[key][i].path?'及云端文件':'')+'？'))return;
+  var f=DB.files[key][i];
   if(f.path&&sb&&sbUser){await sb.storage.from('project-files').remove([f.path]);}
-  DB.files[mod].splice(i,1);save();refreshFileViews();
+  DB.files[key].splice(i,1);save();refreshFileViews();
 }
 /* ============ 里程碑 ============ */
 function renderMile(){
