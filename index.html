@@ -92,7 +92,13 @@ tr:hover td{background:#f8fbfc}
 .gm-title:hover{color:var(--primary)}
 .gm-count{color:var(--muted);font-weight:400;font-size:12px}
 .gm-hint{font-size:12px;color:var(--muted);margin-left:auto}
-.gm-bar-sum{background:linear-gradient(90deg,var(--primary),var(--accent))}
+.gm-title{width:210px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gt-todo{background:#ffffff;border:1.5px solid var(--gray)}
+.gt-doing{background:#3a9d6e}
+.gt-hold{background:#f2c94c}
+.gt-done{background:#2c7a57}
+.gt-near{background:#f6bcbc}
+.gt-over{background:#d64545}
 .filecard:hover{box-shadow:0 4px 18px rgba(30,60,75,.16);outline:1px solid var(--primary)}
 #pvMask{display:none;position:fixed;inset:0;background:rgba(20,40,50,.6);z-index:300;align-items:center;justify-content:center}
 .pvbox{background:#fff;border-radius:12px;padding:20px;width:min(880px,94vw);max-height:88vh;overflow:auto}
@@ -149,10 +155,12 @@ input[type=email],input[type=password]{padding:8px 10px;border:1px solid #d6dee2
   <div class="page" id="gantt">
     <h2 class="section">项目甘特图</h2>
     <div class="legend">
-      <span><i style="background:var(--green)"></i>已完成</span>
-      <span><i style="background:var(--orange)"></i>进行中</span>
-      <span><i style="background:var(--gray)"></i>未开始</span>
-      <span><i style="background:var(--red)"></i>暂停</span>
+      <span><i style="background:#ffffff;border:1px solid var(--gray)"></i>未开始</span>
+      <span><i style="background:#3a9d6e"></i>进行中</span>
+      <span><i style="background:#f2c94c"></i>暂停</span>
+      <span><i style="background:#2c7a57"></i>已完成</span>
+      <span><i style="background:#f6bcbc"></i>临近节点（&lt;30天）</span>
+      <span><i style="background:#d64545"></i>已逾期</span>
     </div>
     <div class="gantt-scroll"><div class="gantt" id="ganttBox"></div></div>
   </div>
@@ -161,7 +169,9 @@ input[type=email],input[type=password]{padding:8px 10px;border:1px solid #d6dee2
     <h2 class="section">任务清单</h2>
     <div class="card">
       <div class="toolbar">
-        <select id="fMod" onchange="renderTasks()"><option value="">全部模块</option></select>
+        <select id="fL1" onchange="renderTasks()"></select>
+        <select id="fL2" onchange="renderTasks()"></select>
+        <select id="fL3" onchange="renderTasks()"></select>
         <select id="fStatus" onchange="renderTasks()">
           <option value="">全部状态</option><option>未开始</option><option>进行中</option><option>已完成</option><option>暂停</option>
         </select>
@@ -527,6 +537,15 @@ function jumpTask(id){
 
 /* ============ 甘特图 ============ */
 var ganttExpanded={};
+function ganttBarClass(t){
+  if(t.st==='已完成')return 'gt-done';
+  var e=new Date(t.e).getTime(), now=Date.now();
+  if(!isNaN(e)&&now>e)return 'gt-over';
+  if(!isNaN(e)&&e-now<30*86400000)return 'gt-near';
+  if(t.st==='暂停')return 'gt-hold';
+  if(t.st==='进行中')return 'gt-doing';
+  return 'gt-todo';
+}
 function toggleGanttMod(m){ganttExpanded[m]=!ganttExpanded[m];renderGantt();}
 function ganttAxisHtml(m0,m1){
   var months=[],cur=new Date(m0);
@@ -552,16 +571,18 @@ function renderGantt(){
     var items=DB.tasks.filter(function(t){return t.mod===m;});
     var dated=items.filter(function(t){return hasDate(t)&&!t.parent;});
     var open=!!ganttExpanded[m];
-    var head='<span class="gm-toggle">'+(open?'▼':'▶')+'</span>'+
-      '<span class="gm-title" onclick="toggleGanttMod(\''+m.replace(/'/g,'')+'\')">'+esc(m)+
-      '<span class="gm-count">（'+items.length+' 项）</span></span>';
+    var mq=m.replace(/'/g,'');
+    var l2=items.filter(function(t){return !t.parent;});
+    var head='<span class="gm-toggle" onclick="toggleGanttMod(\''+mq+'\')">'+(open?'▼':'▶')+'</span>'+
+      '<span class="gm-title" onclick="toggleGanttMod(\''+mq+'\')">'+esc(m)+
+      '<span class="gm-count">（'+l2.length+' 项）</span></span>';
     html+='<div class="gm-block">';
     if(!dated.length){
       html+='<div class="gm-head">'+head+
         '<span class="gm-hint">该模块暂无排期，请先在任务清单中填写开始/结束日期</span></div>';
-      if(open&&items.length){
-        html+='<div class="gm-rows">'+items.map(function(t){
-          return '<div class="g-row"><div class="g-name" title="'+esc(t.name)+'">'+(t.parent?'└ ':'')+esc(t.name)+'</div>'+
+      if(open&&l2.length){
+        html+='<div class="gm-rows">'+l2.map(function(t){
+          return '<div class="g-row"><div class="g-name" title="'+esc(t.name)+'">'+esc(t.name)+'</div>'+
                  '<div class="g-track"><span class="g-nobar">未排期</span></div></div>';
         }).join('')+'</div>';
       }
@@ -573,16 +594,8 @@ function renderGantt(){
     var m1=new Date(max);m1.setMonth(m1.getMonth()+1);m1.setDate(1);
     var total=m1-m0;
     html+='<div class="gm-head">'+head+'<div class="g-timeline">'+ganttAxisHtml(m0,m1)+'</div></div>';
-    // 模块汇总行
-    var sMin=Math.min.apply(null,dated.map(function(t){return new Date(t.s).getTime();}));
-    var eMax=Math.max.apply(null,dated.map(function(t){return new Date(t.e).getTime();}));
-    var l=(sMin-m0)/total*100,w=(eMax-sMin)/total*100;if(w<0.8)w=0.8;
-    html+='<div class="gm-rows"><div class="g-row gm-summary">'+
-      '<div class="g-name">▸ 模块整体</div>'+
-      '<div class="g-track"><div class="g-bar gm-bar-sum" style="left:'+l+'%;width:'+w+'%" title="'+esc(m)+' | '+new Date(sMin).toISOString().slice(0,10)+' ~ '+new Date(eMax).toISOString().slice(0,10)+'"></div></div></div>';
-    if(open){
-      items.forEach(function(t){
-        var pre=t.parent?'└ ':'';
+        if(open){
+      l2.forEach(function(t){
         if(!hasDate(t)){
           html+='<div class="g-row"><div class="g-name" title="'+esc(t.name)+'">'+pre+esc(t.name)+'</div>'+
                '<div class="g-track"><span class="g-nobar">未排期</span></div></div>';
@@ -590,9 +603,9 @@ function renderGantt(){
         }
         var ll=(new Date(t.s)-m0)/total*100, ww=(new Date(t.e)-new Date(t.s))/total*100;
         if(ww<0.8)ww=0.8;
-        html+='<div class="g-row"><div class="g-name" title="'+esc(t.name)+'">'+pre+esc(t.name)+'</div>'+
-          '<div class="g-track"><div class="g-bar st-'+(t.st==='已完成'?'done':t.st==='进行中'?'doing':t.st==='暂停'?'hold':'todo')+'" '+
-          'style="left:'+ll+'%;width:'+ww+'%" title="'+esc(t.name)+' | '+t.s+' ~ '+t.e+' | '+t.st+'">'+esc(t.name)+'</div></div></div>';
+        html+='<div class="g-row"><div class="g-name" title="'+esc(t.name)+'">'+esc(t.name)+'</div>'+
+          '<div class="g-track"><div class="g-bar '+ganttBarClass(t)+'" '+
+          'style="left:'+ll+'%;width:'+ww+'%" title="'+esc(t.name)+'&#10;时间：'+t.s+' ~ '+t.e+'&#10;状态：'+t.st+'"></div></div></div>';
       });
     }
     html+='</div></div>';
@@ -616,28 +629,70 @@ function editRowHtml(t){
 }
 function childrenOf(id){return DB.tasks.filter(function(x){return x.parent===id;});}
 function renderTasks(){
-  var fm=document.getElementById('fMod').value, fs=document.getElementById('fStatus').value;
-  var sel=document.getElementById('fMod');
-  sel.innerHTML='<option value="">全部模块</option>';
-  MODS().forEach(function(m){var o=document.createElement('option');o.textContent=m;sel.appendChild(o);});
-  sel.value=fm;
+  var f1=document.getElementById('fL1').value,
+      f2v=document.getElementById('fL2').value,
+      f3v=document.getElementById('fL3').value,
+      fs=document.getElementById('fStatus').value;
+  var f2=f2v?+f2v:0, f3=f3v?+f3v:0;
+  // 一级下拉
+  var sel1=document.getElementById('fL1');
+  sel1.innerHTML='<option value="">一级任务：全部</option>';
+  MODS().forEach(function(m){var o=document.createElement('option');o.textContent=m;sel1.appendChild(o);});
+  sel1.value=f1;
+  // 二级下拉（随一级联动）
+  var l2pool=DB.tasks.filter(function(t){return !t.parent&&(!f1||t.mod===f1);});
+  var sel2=document.getElementById('fL2');
+  sel2.innerHTML='<option value="">二级任务：全部</option>';
+  if(f1){
+    l2pool.forEach(function(t){var o=document.createElement('option');o.value=t.id;o.textContent=t.name;sel2.appendChild(o);});
+  }else{
+    MODS().forEach(function(m){
+      var g=document.createElement('optgroup');g.label=m;
+      DB.tasks.filter(function(t){return !t.parent&&t.mod===m;}).forEach(function(t){
+        var o=document.createElement('option');o.value=t.id;o.textContent=t.name;g.appendChild(o);});
+      if(g.children.length)sel2.appendChild(g);
+    });
+  }
+  if(f2&&!l2pool.some(function(t){return t.id===f2;}))f2=0;
+  sel2.value=f2?String(f2):'';
+  // 三级下拉（随二级/一级联动）
+  var l3pool=f2?childrenOf(f2):DB.tasks.filter(function(t){return t.parent&&(!f1||t.mod===f1);});
+  var sel3=document.getElementById('fL3');
+  sel3.innerHTML='<option value="">三级任务：全部</option>';
+  if(f2){
+    l3pool.forEach(function(t){var o=document.createElement('option');o.value=t.id;o.textContent=t.name;sel3.appendChild(o);});
+  }else{
+    l2pool.forEach(function(p){
+      var kids=childrenOf(p.id);if(!kids.length)return;
+      var g=document.createElement('optgroup');g.label=p.name;
+      kids.forEach(function(t){var o=document.createElement('option');o.value=t.id;o.textContent=t.name;g.appendChild(o);});
+      sel3.appendChild(g);
+    });
+  }
+  if(f3&&!l3pool.some(function(t){return t.id===f3;}))f3=0;
+  sel3.value=f3?String(f3):'';
+  function vis(t){
+    if(f1&&t.mod!==f1)return false;
+    if(f2&&t.id!==f2&&t.parent!==f2)return false;
+    if(f3&&t.id!==f3)return false;
+    if(fs&&t.st!==fs)return false;
+    return true;
+  }
   var tb=document.getElementById('taskBody');tb.innerHTML='';
-  if(adding){tb.innerHTML+=editRowHtml({id:0,mod:fm||MODULES[0],name:'',s:'',e:'',owner:'',st:'未开始',deliver:'',parent:null});}
+  if(adding){tb.innerHTML+=editRowHtml({id:0,mod:f1||MODULES[0],name:'',s:'',e:'',owner:'',st:'未开始',deliver:'',parent:null});}
   var mods=MODS(), anyRow=false;
   mods.forEach(function(m){
     var list=DB.tasks.filter(function(t){return t.mod===m;});
-    var vis=list.filter(function(t){return (!fm||t.mod===fm)&&(!fs||t.st===fs);});
-    if(!vis.length)return;
+    var visList=list.filter(vis);
+    if(!visList.length)return;
     anyRow=true;
     tb.innerHTML+='<tr class="modhead"><td colspan="7">'+esc(m)+'</td></tr>';
     list.forEach(function(t){
-      if(vis.indexOf(t)<0)return;
+      if(visList.indexOf(t)<0)return;
       if(editingId===t.id){tb.innerHTML+=editRowHtml(t);return;}
       var pre=t.parent?'<span class="lv3">└ </span>':'<span class="lv2">▸ </span>';
-      var pad=t.parent?'padding-left:34px':'padding-left:14px';
-      var childBtn=(!t.parent&&childrenOf(t.id).length===0)?' <button class="btn sm" onclick="addChild('+t.id+')">＋子项</button>':'';
       tb.innerHTML+='<tr><td></td>'+
-      '<td style="'+pad+'">'+pre+'<b class="tname" onclick="startEdit('+t.id+')">'+esc(t.name)+'</b>'+childBtn+
+      '<td>'+pre+'<b class="tname" onclick="startEdit('+t.id+')">'+esc(t.name)+'</b>'+
       (t.deliver?'<br><span style="font-size:12px;color:var(--muted)">交付物：'+esc(t.deliver)+'</span>':'')+'</td>'+
       '<td style="white-space:nowrap">'+t.s+'</td><td style="white-space:nowrap">'+t.e+'</td><td>'+esc(t.owner||'—')+'</td>'+
       '<td><span class="badge b-'+t.st+'">'+t.st+'</span></td>'+
@@ -647,12 +702,6 @@ function renderTasks(){
     });
   });
   if(!anyRow&&!adding)tb.innerHTML='<tr><td colspan="7" class="empty">没有匹配的任务</td></tr>';
-}
-function addChild(pid){
-  var p=DB.tasks.find(function(x){return x.id===pid;});if(!p)return;
-  var nt={id:DB.nextId++,mod:p.mod,name:'新子项',parent:pid,s:'',e:'',owner:'',st:'未开始',deliver:''};
-  DB.tasks.splice(DB.tasks.indexOf(p)+1,0,nt);
-  save();renderTasks();startEdit(nt.id);
 }
 function startEdit(id){editingId=id;adding=false;renderTasks();}
 function startAdd(){adding=true;editingId=null;renderTasks();}
