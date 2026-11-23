@@ -453,9 +453,9 @@ function renderProjView(){
       (metaLine?'<div class="phase">'+metaLine+'</div>':'')+
       '<div class="phase">创建于 '+String(p.created_at||'').slice(0,10)+'</div>'+
       '<div style="margin-top:14px;white-space:nowrap">'+
-      '<button class="btn sm" style="background:var(--primary);color:#fff" onclick="openProject('+p.id+')">进入</button> '+
-      '<button class="btn sm" onclick="renameProject('+p.id+')">重命名</button> '+
-      '<button class="btn sm del" onclick="delProject('+p.id+')">删除</button></div></div>';
+      '<button class="btn sm" style="background:var(--primary);color:#fff" onclick="openProject(''+p.id+'')">进入</button> '+
+      '<button class="btn sm" onclick="renameProject(''+p.id+'')">重命名</button> '+
+      '<button class="btn sm del" onclick="delProject(''+p.id+'')">删除</button></div></div>';
   });
 }
 function showProjView(){document.getElementById('projview').style.display='block';renderProjView();}
