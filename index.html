@@ -72,6 +72,9 @@ tr:hover td{background:#f8fbfc}
 .filecard{height:150px;cursor:pointer;transition:box-shadow .2s}
 .g-nobar{font-size:11px;color:var(--muted);background:#f0f3f5;border-radius:4px;padding:1px 8px}
 .kb-cat{color:var(--primary-dark);font-size:14px;margin:14px 0 8px;border-left:4px solid var(--accent);padding-left:8px}
+.kb-tabs{display:flex;gap:8px;margin-bottom:14px;border-bottom:2px solid #e3e9ec;padding-bottom:8px}
+.kb-tab{background:#fff;border:1px solid #d6dee2;border-radius:6px;padding:6px 16px;font-size:13px;cursor:pointer;color:var(--muted);font-family:inherit}
+.kb-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
 .kb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px}
 .kb-site{background:#fbfdfe;border:1px solid #eef2f4;border-radius:8px;padding:10px 12px}
 .kb-site a{color:var(--primary);text-decoration:none;font-weight:600;font-size:13px}
@@ -163,7 +166,7 @@ input[type=email],input[type=password]{padding:8px 10px;border:1px solid #d6dee2
         </select>
       </div>
       <div style="overflow-x:auto"><table>
-        <thead><tr><th>一级任务</th><th>二级任务</th><th>三级任务</th><th>开始</th><th>结束</th><th>负责人</th><th>状态</th><th>操作</th></tr></thead>
+        <thead id="taskHead"></thead>
         <tbody id="taskBody"></tbody>
       </table></div>
     </div>
@@ -197,36 +200,43 @@ input[type=email],input[type=password]{padding:8px 10px;border:1px solid #d6dee2
 
   <!-- 知识库 -->
   <div class="page" id="kb">
-    <h2 class="section">知识库 · 研发资源导航与体系文件</h2>
-    <div class="card" style="margin-bottom:16px">
-      <h3 style="color:var(--primary-dark);font-size:15px;margin-bottom:12px">🌐 常用网站导航</h3>
-      <div class="toolbar">
-        <input type="text" id="kbSiteQ" placeholder="搜索网站名称 / 用途…" oninput="renderKBSites()" style="width:220px">
-        <select id="kbSiteCat" onchange="renderKBSites()"></select>
-        <span style="font-size:12px;color:var(--muted);align-self:center" id="kbSiteCount"></span>
-      </div>
-      <div id="kbSites"></div>
+    <h2 class="section">📖 知识库 · 研发资源导航与体系文件</h2>
+    <div class="kb-tabs">
+      <button class="kb-tab active" onclick="switchKBTab('sites',this)">🌐 常用网站</button>
+      <button class="kb-tab" onclick="switchKBTab('docs',this)">📋 体系文件建设</button>
     </div>
-    <div class="card" style="margin-bottom:16px">
-      <h3 style="color:var(--primary-dark);font-size:15px;margin-bottom:12px">📋 中药药学研发体系 · 文件-依据对照矩阵（86 项）</h3>
-      <div class="toolbar">
-        <input type="text" id="kbMatQ" placeholder="搜索文件名称 / 编码 / 依据…" oninput="renderKBMatrix()" style="width:220px">
-        <select id="kbMatLvl" onchange="renderKBMatrix()"></select>
-        <select id="kbMatProf" onchange="renderKBMatrix()"></select>
-        <span style="font-size:12px;color:var(--muted);align-self:center" id="kbMatCount"></span>
+    <div id="kbPanelSites">
+      <div class="card" style="margin-bottom:16px">
+        <div class="toolbar">
+          <input type="text" id="kbSiteQ" placeholder="搜索网站名称 / 用途…" oninput="renderKBSites()" style="width:220px">
+          <select id="kbSiteCat" onchange="renderKBSites()"></select>
+          <span style="font-size:12px;color:var(--muted);align-self:center" id="kbSiteCount"></span>
+        </div>
+        <div id="kbSites"></div>
       </div>
-      <div style="overflow-x:auto"><table>
-        <thead><tr><th>编码</th><th>文件名称</th><th>层级</th><th>专业分类</th><th>主要参考依据</th></tr></thead>
-        <tbody id="kbMatBody"></tbody>
-      </table></div>
     </div>
-    <div class="card">
-      <h3 style="color:var(--primary-dark);font-size:15px;margin-bottom:12px">⚖️ 法规与指导原则依据总表（R1–R18）</h3>
-      <div style="overflow-x:auto"><table>
-        <thead><tr><th style="width:60px">编号</th><th style="width:44%">法规 / 指导原则名称</th><th>适用说明</th></tr></thead>
-        <tbody id="kbRefBody"></tbody>
-      </table></div>
-      <div id="kbNotes" style="margin-top:14px;font-size:12.5px;color:var(--muted);line-height:1.9;background:#f7f9fa;border-radius:8px;padding:12px 14px"></div>
+    <div id="kbPanelDocs" style="display:none">
+      <div class="card" style="margin-bottom:16px">
+        <h3 style="color:var(--primary-dark);font-size:15px;margin-bottom:12px">📋 中药药学研发体系 · 文件-依据对照矩阵（86 项）</h3>
+        <div class="toolbar">
+          <input type="text" id="kbMatQ" placeholder="搜索文件名称 / 编码 / 依据…" oninput="renderKBMatrix()" style="width:220px">
+          <select id="kbMatLvl" onchange="renderKBMatrix()"></select>
+          <select id="kbMatProf" onchange="renderKBMatrix()"></select>
+          <span style="font-size:12px;color:var(--muted);align-self:center" id="kbMatCount"></span>
+        </div>
+        <div style="overflow-x:auto"><table>
+          <thead><tr><th>编码</th><th>文件名称</th><th>层级</th><th>专业分类</th><th>主要参考依据</th></tr></thead>
+          <tbody id="kbMatBody"></tbody>
+        </table></div>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--primary-dark);font-size:15px;margin-bottom:12px">⚖️ 法规与指导原则依据总表（R1–R18）</h3>
+        <div style="overflow-x:auto"><table>
+          <thead><tr><th style="width:60px">编号</th><th style="width:44%">法规 / 指导原则名称</th><th>适用说明</th></tr></thead>
+          <tbody id="kbRefBody"></tbody>
+        </table></div>
+        <div id="kbNotes" style="margin-top:14px;font-size:12.5px;color:var(--muted);line-height:1.9;background:#f7f9fa;border-radius:8px;padding:12px 14px"></div>
+      </div>
     </div>
   </div>
 </main>
@@ -353,6 +363,17 @@ function loadProjects(){
   try{return JSON.parse(localStorage.getItem(KEY+'_projects')||'[]');}catch(e){return [];}
 }
 function saveProjects(){localStorage.setItem(KEY+'_projects',JSON.stringify(projects));}
+function cloneFromTemplate(){
+  var tmpl=JSON.parse(localStorage.getItem(allKey(TMPL_ID))||'{}');
+  var data={tasks:[],nextId:1,files:{},modules:MODULES.slice()};
+  if(!tmpl.tasks||!tmpl.tasks.length)return data;
+  var map={};
+  tmpl.tasks.forEach(function(t){map[t.id]=data.nextId++;});
+  tmpl.tasks.forEach(function(t){
+    data.tasks.push({id:map[t.id],mod:t.mod,name:t.name,parent:t.parent?map[t.parent]:null,s:t.s,e:t.e,owner:t.owner||'',st:'未开始',deliver:''});
+  });
+  return data;
+}
 function freshData(withTemplate,noDates){
   var d={tasks:[],nextId:1,files:{},modules:MODULES.slice()};
   if(withTemplate){
@@ -370,7 +391,7 @@ function freshData(withTemplate,noDates){
           it.subs.forEach(function(sn,k){
             var cs=new Date(sD.getTime()+Math.round(total*k/it.subs.length)*86400000);
             var ce=new Date(sD.getTime()+Math.round(total*(k+1)/it.subs.length)*86400000);
-            d.tasks.push({id:idc++,mod:g.mod,name:sn,parent:pid,s:fmtD(cs),e:fmtD(ce),owner:'',st:'未开始',deliver:''});
+            d.tasks.push({id:idc++,mod:g.mod,name:sn,parent:pid,s:fmtD(cs),e:fmtD(ce),owner:'张××',st:'未开始',deliver:''});
           });
         }
       });
@@ -378,6 +399,21 @@ function freshData(withTemplate,noDates){
     d.nextId=idc;
   }
   return d;
+}
+var TMPL_ID='tmpl';
+var TMPL_NAME='项目模板';
+function tmplData(){var d=freshData(true);d.tasks.forEach(function(t){if(t.parent)t.owner='张××';});return d;}
+function initTemplate(){
+  var done=localStorage.getItem(KEY+'_tmplInit');
+  if(done==='1')return;
+  var pid=TMPL_ID;
+  projects=projects.filter(function(p){return p.id===pid;});
+  if(!projects.length){
+    projects.push({id:pid,name:TMPL_NAME,leader:'张××',regClass:'1.1 中药复方制剂',appType:'IND申报',created_at:'2026-11-23T00:00:00.000Z'});
+    localStorage.setItem(allKey(pid),JSON.stringify(tmplData()));
+  }
+  saveProjects();
+  localStorage.setItem(KEY+'_tmplInit','1');
 }
 function migrateLegacy(){
   var legacy=localStorage.getItem(KEY);
@@ -391,12 +427,9 @@ function migrateLegacy(){
       }
     }catch(e){}
   }
-  if(!projects.length){
-    var p={id:Date.now(),name:'中药研发项目',created_at:new Date().toISOString()};
-    projects.push(p);saveProjects();
-    localStorage.setItem(allKey(p.id),JSON.stringify(freshData(true)));
-  }
+  initTemplate();
 }
+
 async function syncProjectsCloud(){
   if(!sb||!sbUser)return;
   var r=await sb.from('project_data').select('id,name,leader,reg_class,app_type,created_at,updated_at,data');
@@ -411,15 +444,14 @@ async function syncProjectsCloud(){
   });
   saveProjects();
 }
-function projTaskCount(pid){try{var d=JSON.parse(localStorage.getItem(allKey(pid))||'null');return d&&d.tasks?d.tasks.length:0;}catch(e){return 0;}}
 function renderProjView(){
   var box=document.getElementById('projList');box.innerHTML='';
   if(!projects.length){box.innerHTML='<div class="empty">还没有项目，点下方按钮新建</div>';return;}
   projects.forEach(function(p){
-    var metaLine=(p.leader?'负责人：'+esc(p.leader):'')+(p.leader&&p.regClass?' ｜ ':'')+(p.regClass?'注册分类：'+esc(p.regClass):'');
+    var metaLine=(p.leader?'负责人：'+esc(p.leader):'')+(p.leader&&p.regClass?' ｜ ':'')+(p.regClass?'注册分类：'+esc(p.regClass):'')+(p.regClass&&p.appType?' ｜ ':'')+(p.appType?'申报类型：'+esc(p.appType):'');
     box.innerHTML+='<div class="mod" style="cursor:default"><h3>'+esc(p.name)+'</h3>'+
       (metaLine?'<div class="phase">'+metaLine+'</div>':'')+
-      '<div class="phase">'+projTaskCount(p.id)+' 项任务 · 创建于 '+String(p.created_at||'').slice(0,10)+'</div>'+
+      '<div class="phase">创建于 '+String(p.created_at||'').slice(0,10)+'</div>'+
       '<div style="margin-top:14px;white-space:nowrap">'+
       '<button class="btn sm" style="background:var(--primary);color:#fff" onclick="openProject('+p.id+')">进入</button> '+
       '<button class="btn sm" onclick="renameProject('+p.id+')">重命名</button> '+
@@ -455,10 +487,10 @@ function openProjForm(pid){
   pfEditingId=pid||null;
   var p=pid?projects.find(function(x){return x.id===pid;}):null;
   document.getElementById('pfTitle').textContent=p?'编辑项目信息':'新建项目';
-  document.getElementById('pfName').value=p?p.name:'';
-  document.getElementById('pfLeader').value=p?(p.leader||''):'';
-  document.getElementById('pfReg').value=p?(p.regClass||''):'';
-  document.getElementById('pfApp').value=p?(p.appType||''):'';
+  document.getElementById('pfName').value=p?p.name:'';document.getElementById('pfLeader').value=p?p.leader||'':'张××';document.getElementById('pfReg').value=p?p.regClass||'':'1.1 中药复方制剂';document.getElementById('pfApp').value=p?p.appType||'':'IND申报';
+  document.getElementById('pfLeader').value=p?(p.leader||''):'张××';
+  document.getElementById('pfReg').value=p?(p.regClass||''):'1.1 中药复方制剂';
+  document.getElementById('pfApp').value=p?(p.appType||''):'IND申报';
   document.getElementById('pfMsg').textContent='';
   document.getElementById('projFormMask').style.display='flex';
 }
@@ -485,7 +517,7 @@ function submitProjForm(){
   }else{
     var np={id:Date.now(),name:name,leader:leader,regClass:reg,appType:app,created_at:new Date().toISOString()};
     projects.push(np);saveProjects();
-    localStorage.setItem(allKey(np.id),JSON.stringify(freshData(true)));
+    localStorage.setItem(allKey(np.id),JSON.stringify(cloneFromTemplate()));
     renderProjView();
     openProject(np.id);
   }
@@ -631,18 +663,14 @@ function naEligible(t){
   return sibs.length>1&&childrenOf(t.id).length<=1;
 }
 function editRowHtml(t){
-  var modOpts=MODS().map(function(m){return '<option'+(m===t.mod?' selected':'')+'>'+m+'</option>';}).join('');
   var sts=STATUSES.filter(function(s){return s!=='不适用'||naEligible(t);});
   if(sts.indexOf(t.st)<0)sts.push(t.st);
   var stOpts=sts.map(function(s){return '<option'+(s===t.st?' selected':'')+'>'+s+'</option>';}).join('');
-  var parent=t.parent?DB.tasks.find(function(x){return x.id===t.parent;}):null;
-  var nameTd2=parent?esc(parent.name):'<input type="text" id="eName" value="'+esc(t.name)+'" readonly style="width:150px;background:#f2f5f7;color:#7a8a93">';
-  var nameTd3=parent?'<input type="text" id="eName" value="'+esc(t.name)+'" readonly style="width:150px;background:#f2f5f7;color:#7a8a93">':'<span style="color:#aab6bd">—</span>';
-  return '<tr style="background:#f4f9fb"><td><select id="eMod" disabled>'+modOpts+'</select></td>'+
-   '<td>'+nameTd2+'</td><td>'+nameTd3+'</td>'+
+  return '<tr style="background:#f4f9fb">'+
+   '<td><input type="text" id="eName" value="'+esc(t.name)+'" readonly style="width:180px;background:#f2f5f7;color:#7a8a93"></td>'+
    '<td><input type="date" id="eS" value="'+t.s+'"></td>'+
    '<td><input type="date" id="eE" value="'+t.e+'"></td>'+
-   '<td><input type="text" id="eOwner" value="'+esc(t.owner||'')+'" placeholder="负责人" style="width:70px"></td>'+
+   '<td><input type="text" id="eOwner" value="'+esc(t.owner||'')+'" placeholder="负责人" style="width:80px"></td>'+
    '<td><select id="eSt">'+stOpts+'</select></td>'+
    '<td style="white-space:nowrap"><button class="btn sm" style="background:var(--primary);color:#fff" onclick="saveTask('+t.id+')">保存</button> '+
    '<button class="btn sm" onclick="cancelEdit()">取消</button></td></tr>';
@@ -654,60 +682,44 @@ function renderTasks(){
       fs=document.getElementById('fStatus').value;
   var f2=f2v?+f2v:0;
   var sel1=document.getElementById('fL1');
-  sel1.innerHTML='<option value="">请选择一级任务</option>';
+  sel1.innerHTML='';var po=document.createElement('option');po.textContent='请选择一级任务';po.value='';sel1.appendChild(po);
   MODS().forEach(function(m){var o=document.createElement('option');o.textContent=m;sel1.appendChild(o);});
   sel1.value=f1;
-  var sel2=document.getElementById('fL2');
-  sel2.innerHTML='';
-  if(!f1){
-    var o0=document.createElement('option');o0.textContent='请先选择一级任务';o0.value='';sel2.appendChild(o0);
-    sel2.value='';
-  }else{
-    var ph=document.createElement('option');ph.textContent='请选择二级任务';ph.value='';sel2.appendChild(ph);
-    DB.tasks.filter(function(t){return !t.parent&&t.mod===f1;}).forEach(function(t){
-      var o=document.createElement('option');o.value=t.id;o.textContent=t.name;sel2.appendChild(o);});
+  var sel2=document.getElementById('fL2');sel2.innerHTML='';
+  if(!f1){var o0=document.createElement('option');o0.textContent='请先选择一级任务';o0.value='';sel2.appendChild(o0);sel2.value='';}
+  else{var ph=document.createElement('option');ph.textContent='请选择二级任务';ph.value='';sel2.appendChild(ph);
+    DB.tasks.filter(function(t){return !t.parent&&t.mod===f1;}).forEach(function(t){var o=document.createElement('option');o.value=t.id;o.textContent=t.name;sel2.appendChild(o);});
     var ok=DB.tasks.some(function(t){return t.id===f2&&!t.parent&&t.mod===f1;});
-    if(!ok)f2=0;
-    sel2.value=f2?String(f2):'';
+    if(!ok)f2=0;sel2.value=f2?String(f2):'';
   }
+  var head=document.getElementById('taskHead');
+  if(!f1||!f2){head.innerHTML='<tr><th>任务</th><th>开始</th><th>结束</th><th>负责人</th><th>状态</th><th>操作</th></tr>';}
+  else{head.innerHTML='<tr><th>三级任务</th><th>开始</th><th>结束</th><th>负责人</th><th>状态</th><th>操作</th></tr>';}
   var tb=document.getElementById('taskBody');tb.innerHTML='';
-  if(!f1||!f2){
-    tb.innerHTML='<tr><td colspan="8" class="empty">请先在顶部选择一级任务和二级任务</td></tr>';
-    return;
-  }
-  var l2=DB.tasks.find(function(t){return t.id===f2;});if(!l2){tb.innerHTML='<tr><td colspan="8" class="empty">未找到该二级任务</td></tr>';return;}
+  if(!f1||!f2){tb.innerHTML='<tr><td colspan="6" class="empty">请先在顶部选择一级任务和二级任务</td></tr>';return;}
+  var l2=DB.tasks.find(function(t){return t.id===f2;});if(!l2){tb.innerHTML='<tr><td colspan="6" class="empty">未找到该二级任务</td></tr>';return;}
   var kids=childrenOf(f2);
-  var rows=kids.length?kids.filter(function(t){return !fs||t.st===fs;})
-                     :[l2].filter(function(t){return !fs||t.st===fs;});
-  if(editingId){
-    var et=DB.tasks.find(function(t){return t.id===editingId;});
-    if(et&&et.mod===f1&&(et.id===f2||et.parent===f2)){tb.innerHTML+=editRowHtml(et);}
-  }
-  rows.forEach(function(t){
-    if(t.id===editingId)return;
-    var par=t.parent?DB.tasks.find(function(x){return x.id===t.parent;}):null;
+  var rows=kids.length?kids.filter(function(t){return !fs||t.st===fs;}):[l2].filter(function(t){return !fs||t.st===fs;});
+  rows.forEach(function(t,i){
+    if(t.id===editingId){tb.innerHTML+=editRowHtml(t);return;}
+    var name=t.parent?esc(t.name):esc(t.name)+'<span style="color:#aab6bd">（无子任务）</span>';
     tb.innerHTML+='<tr>'+
-    '<td>'+esc(t.mod)+'</td>'+
-    '<td><b class="tname" onclick="startEdit('+t.id+')">'+esc(par?par.name:t.name)+'</b></td>'+
-    '<td>'+(par?esc(t.name):'<span style="color:#aab6bd">—</span>')+'</td>'+
+    '<td><b class="tname" onclick="startEdit('+t.id+')">'+name+'</b></td>'+
     '<td style="white-space:nowrap">'+t.s+'</td><td style="white-space:nowrap">'+t.e+'</td><td>'+esc(t.owner||'—')+'</td>'+
     '<td><span class="badge b-'+t.st+'">'+t.st+'</span></td>'+
     '<td style="white-space:nowrap"><button class="btn sm" onclick="startEdit('+t.id+')">编辑</button></td></tr>';
   });
-  if(!rows.length&&!editingId)tb.innerHTML='<tr><td colspan="8" class="empty">没有匹配的任务</td></tr>';
+  if(!rows.length&&!editingId)tb.innerHTML='<tr><td colspan="6" class="empty">没有匹配的任务</td></tr>';
 }
-function startEdit(id){editingId=id;adding=false;renderTasks();}
-function cancelEdit(){editingId=null;renderTasks();}
+function startEdit(id){editingId=id;renderTasks();}
 function saveTask(id){
-  var v={mod:document.getElementById('eMod').value,
-    name:document.getElementById('eName').value.trim(),
-    s:document.getElementById('eS').value,e:document.getElementById('eE').value,
-    owner:document.getElementById('eOwner').value.trim(),
-    st:document.getElementById('eSt').value};
-  if(!v.name){alert('任务名称不能为空');return;}
+  var v={s:document.getElementById('eS').value,e:document.getElementById('eE').value,
+    owner:(document.getElementById('eOwner')||{}).value||'',
+    st:(document.getElementById('eSt')||{}).value||'未开始'};
   var t=DB.tasks.find(function(x){return x.id===id;});for(var k in v)t[k]=v[k];
-  editingId=null;save();renderTasks();toast('已保存');
+  save();renderTasks();toast('已保存');
 }
+function cancelEdit(){editingId=null;renderTasks();}
 
 /* ============ 文件 ============ */
 var fileSort='time';
@@ -834,7 +846,14 @@ var KB_MATRIX=[["QM-001", "药品研发质量管理手册", "一", "质量手册
 var KB_REFS=[["R1", "《中华人民共和国药品管理法》（2019年修订）", "上位法"], ["R2", "《药品注册管理办法》（国家市场监督管理总局令第27号，2020-07-01施行）", "注册基本规章"], ["R3", "《中药注册管理专门规定》（国家药监局2023年第20号公告，2023-07-01施行）", "中药注册专门规章，'三结合'审评、全过程质量控制理念来源"], ["R4", "《中药注册分类及申报资料要求》（国家药监局2020年第68号通告，自2021-01-01起按新要求提交申报资料）", "药学研究资料3.1~3.5项的直接撰写依据"], ["R5", "《中药新药研究各阶段药学研究技术指导原则（试行）》（药审中心发布）", "药学研究各阶段技术要求总纲；中药复方新药适用，其他类别参照执行"], ["R6", "《药品注册核查工作程序（试行）》及《药品注册核查要点与判定原则（药学研制和生产现场）（试行）》（国家药监局食品药品审核查验中心2021年第30号通告，2022-01-01施行）", "药品注册研制现场核查直接判定依据"], ["R7", "《药品记录与数据管理要求（试行）》（国家药监局2020年第74号公告）", "记录与数据完整性管理"], ["R8", "《中国药典》2025年版（一部、四部）", "现行版（2025-10-01起施行，替代2020年版）：药材/饮片标准、炮制通则、四部通用技术通则"], ["R9", "《中药材生产质量管理规范》（国家药监局等四部门2022年第22号公告，2022-03-01发布）", "药材种植养殖、采收加工源头管理（GAP）"], ["R10", "《药品标准管理办法》（国家市场监督管理总局令第86号，2023-07-01施行）", "药品标准全生命周期管理"], ["R11", "ICH Q2(R2)/Q14（分析方法验证与开发）、Q1A(R2)/Q1E（稳定性）、Q3C（残留溶剂）、Q3D(R2)（元素杂质）、Q9(R1)（质量风险管理）、Q10（药品质量体系，自愿参考）", "方法学与风险管理技术支撑，已在我国适用/转化"], ["R12", "《野生药材资源保护管理条例》（国务院）、《国家重点保护野生药材物种名录》、《国家重点保护野生植物名录》（2021年调整）、《濒危野生动植物种国际贸易公约》（CITES）附录", "药材来源合法性、可持续利用"], ["R13", "《医疗用毒性药品管理办法》（国务院令第23号）", "含毒性药味品种控制"], ["R14", "各省级《中药饮片炮制规范》", "饮片炮制法定依据"], ["R15", "CDE《中药、天然药物综述资料撰写的格式和内容的技术指导原则》系列（国食药监注〔2006〕444号发布的一批）", "研究报告/综述撰写格式参考"], ["R16", "《危险化学品安全管理条例》（国务院令第591号）、GB 19489《实验室 生物安全通用要求》", "实验室安全管理"], ["R17", "《中华人民共和国计量法》", "计量器具检定/校准"], ["R18", "药品原辅包与制剂关联审评审批有关规定（国家药监局公告）", "药包材、药用辅料合法性（授权使用书）"]];
 var KB_NOTES=["1. 引用格式：每份SOP首页'参考依据'栏写明'文件名+文号/公告号+年份'，并注明具体条款（如 R4-3.3.4.4）。", "2. 版本时效：R8以现行《中国药典》2025年版为准（2025-10-01施行，已替代2020年版）；建立受控法规清单（REF类），每半年核查更新。", "3. ICH使用策略：方法学验证/开发引用Q2(R2)、Q14；稳定性引用Q1A(R2)/Q1E；风险管理引用Q9(R1)。法规符合性以R3、R4、R5为主线，ICH作技术方法学支撑。", "4. 委托场景：凡引用R6委托条款的文件，对应研究委托外部完成时，需增加受托方资质审计记录（核查可延伸至中药材、饮片、提取物供应商）。", "5. 本矩阵为体系受控文件附件，文件新增/修订时同步更新矩阵版本号。"];
 
+function switchKBTab(id,btn){
+  document.getElementById('kbPanelSites').style.display=id==='sites'?'block':'none';
+  document.getElementById('kbPanelDocs').style.display=id==='docs'?'block':'none';
+  document.querySelectorAll('.kb-tab').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+}
 function renderKB(){renderKBSites();renderKBMatrix();renderKBRefs();}
+
 function renderKBSites(){
   var q=(document.getElementById('kbSiteQ').value||'').trim().toLowerCase();
   var sel=document.getElementById('kbSiteCat'),cur=sel.value;
