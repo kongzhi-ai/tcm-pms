@@ -83,6 +83,12 @@ tr:hover td{background:#f8fbfc}
 .sbtn:hover{background:var(--primary);color:#fff}
 .g-nobar{font-size:11px;color:var(--muted);background:#f0f3f5;border-radius:4px;padding:1px 8px}
 .modhead td{background:#eef4f6;color:var(--primary-dark);font-weight:600;font-size:13px;padding:8px}
+.kb-cat{color:var(--primary-dark);font-size:14px;margin:14px 0 8px;border-left:4px solid var(--accent);padding-left:8px}
+.kb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px}
+.kb-site{background:#fbfdfe;border:1px solid #eef2f4;border-radius:8px;padding:10px 12px}
+.kb-site a{color:var(--primary);text-decoration:none;font-weight:600;font-size:13px}
+.kb-site a:hover{text-decoration:underline}
+.kb-site p{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.6}
 .lv2{color:var(--primary)}
 .lv3{color:var(--muted)}
 .gm-block{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;margin-bottom:16px}
@@ -106,13 +112,6 @@ tr:hover td{background:#f8fbfc}
 .fitem a{color:var(--primary);text-decoration:none;word-break:break-all}
 .fitem a:hover{text-decoration:underline}
 .empty{color:var(--muted);font-size:12px;padding:8px 0}
-/* 里程碑 */
-.timeline{position:relative;padding-left:26px}
-.timeline:before{content:'';position:absolute;left:8px;top:6px;bottom:6px;width:2px;background:#d9e4e9}
-.mi{position:relative;margin-bottom:22px}
-.mi:before{content:'';position:absolute;left:-24px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--primary);border:2px solid #fff;box-shadow:0 0 0 2px var(--primary)}
-.mi.done:before{background:var(--green);box-shadow:0 0 0 2px var(--green)}
-.mi h4{font-size:14px}.mi p{font-size:12px;color:var(--muted);margin-top:3px}
 footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#2b3a42;color:#fff;padding:10px 22px;border-radius:8px;font-size:13px;display:none;z-index:99}
 @media(max-width:700px){main{padding:14px}nav{padding:0 10px;overflow-x:auto}header{padding:14px}}
@@ -142,13 +141,13 @@ input[type=email],input[type=password]{padding:8px 10px;border:1px solid #d6dee2
   <button onclick="showPage('gantt',this)">甘特图</button>
   <button onclick="showPage('tasks',this)">任务清单</button>
   <button onclick="showPage('files',this)">文件管理</button>
-  <button onclick="showPage('mile',this)">里程碑</button>
+  <button onclick="showPage('kb',this)">📖 知识库</button>
+  
 </nav>
 <main>
   <!-- 看板 -->
   <div class="page active" id="dash">
     <h2 class="section">项目总览（点击任务可跳转编辑）</h2>
-    <div id="mileBanner" style="background:#fdf6e7;border:1px solid #ecd9a8;border-radius:8px;padding:10px 14px;font-size:13px;color:#8a6d1f;margin-bottom:16px"></div>
     <div class="board" id="board"></div>
   </div>
   <!-- 甘特图 -->
@@ -209,11 +208,40 @@ input[type=email],input[type=password]{padding:8px 10px;border:1px solid #d6dee2
       </table></div>
     </div>
   </div>
-  <!-- 里程碑 -->
-  <div class="page" id="mile">
-    <h2 class="section">关键里程碑（IND倒排）</h2>
-    <div class="toolbar" style="margin-top:-6px"><button class="btn sm" onclick="addMile()">＋ 添加里程碑</button></div>
-    <div class="card"><div class="timeline" id="mileBox"></div></div>
+
+  <!-- 知识库 -->
+  <div class="page" id="kb">
+    <h2 class="section">知识库 · 研发资源导航与体系文件</h2>
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="color:var(--primary-dark);font-size:15px;margin-bottom:12px">🌐 常用网站导航</h3>
+      <div class="toolbar">
+        <input type="text" id="kbSiteQ" placeholder="搜索网站名称 / 用途…" oninput="renderKBSites()" style="width:220px">
+        <select id="kbSiteCat" onchange="renderKBSites()"></select>
+        <span style="font-size:12px;color:var(--muted);align-self:center" id="kbSiteCount"></span>
+      </div>
+      <div id="kbSites"></div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <h3 style="color:var(--primary-dark);font-size:15px;margin-bottom:12px">📋 中药药学研发体系 · 文件-依据对照矩阵（86 项）</h3>
+      <div class="toolbar">
+        <input type="text" id="kbMatQ" placeholder="搜索文件名称 / 编码 / 依据…" oninput="renderKBMatrix()" style="width:220px">
+        <select id="kbMatLvl" onchange="renderKBMatrix()"></select>
+        <select id="kbMatProf" onchange="renderKBMatrix()"></select>
+        <span style="font-size:12px;color:var(--muted);align-self:center" id="kbMatCount"></span>
+      </div>
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th>编码</th><th>文件名称</th><th>层级</th><th>专业分类</th><th>主要参考依据</th></tr></thead>
+        <tbody id="kbMatBody"></tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--primary-dark);font-size:15px;margin-bottom:12px">⚖️ 法规与指导原则依据总表（R1–R18）</h3>
+      <div style="overflow-x:auto"><table>
+        <thead><tr><th style="width:60px">编号</th><th style="width:44%">法规 / 指导原则名称</th><th>适用说明</th></tr></thead>
+        <tbody id="kbRefBody"></tbody>
+      </table></div>
+      <div id="kbNotes" style="margin-top:14px;font-size:12.5px;color:var(--muted);line-height:1.9;background:#f7f9fa;border-radius:8px;padding:12px 14px"></div>
+    </div>
   </div>
 </main>
 <div id="loginMask" style="display:none;position:fixed;inset:0;background:rgba(20,40,50,.55);z-index:200;align-items:center;justify-content:center">
@@ -442,7 +470,7 @@ function openProject(pid){
     (p.leader?' ｜ 负责人：'+p.leader:'')+(p.regClass?' ｜ 注册分类：'+p.regClass:'')+(p.appType?' ｜ 申报类型：'+p.appType:'');
   hideProjView();
   showPage('dash',document.querySelectorAll('nav button')[0]);
-  renderDash();renderTasks();renderFiles();renderMile();renderGantt();
+  renderDash();renderTasks();renderFiles();renderGantt();
 }
 var pfEditingId=null;
 function newProject(){openProjForm(null);}
@@ -515,18 +543,11 @@ function showPage(id,btn){
   document.querySelectorAll('nav button').forEach(function(b){b.classList.remove('active');});
   document.getElementById(id).classList.add('active');btn.classList.add('active');
   if(id==='dash')renderDash(); if(id==='gantt')renderGantt();
-  if(id==='tasks')renderTasks(); if(id==='files')renderFiles(); if(id==='mile')renderMile();
+  if(id==='tasks')renderTasks(); if(id==='files')renderFiles(); if(id==='kb')renderKB();
 }
 
 /* ============ 看板 ============ */
-function renderMileBanner(){
-  var el=document.getElementById('mileBanner');if(!el)return;
-  var ms=(DB.miles||[]).filter(function(m){return !m.done&&m.d;})
-    .sort(function(a,b){return String(a.d).localeCompare(String(b.d));}).slice(0,3);
-  el.innerHTML=ms.length?('🎯 临近里程碑：'+ms.map(function(m){return esc(m.t)+'（'+esc(m.d)+'）';}).join('　|　')):'🎯 暂无未完成的里程碑，去「里程碑」页添加';
-}
 function renderDash(){
-  renderMileBanner();
   var box=document.getElementById('board');box.innerHTML='';
   MODS().forEach(function(m){
     var ts=DB.tasks.filter(function(t){return t.mod===m&&!t.parent;});
@@ -871,29 +892,70 @@ async function delFile(id,i){
   if(f.path&&sb&&sbUser){await sb.storage.from('project-files').remove([f.path]);}
   DB.files[key].splice(i,1);save();refreshFileViews();
 }
-/* ============ 里程碑 ============ */
-function renderMile(){
-  var box=document.getElementById('mileBox');box.innerHTML='';
-  DB.miles.sort(function(a,b){return String(a.d).localeCompare(String(b.d));});
-  DB.miles.forEach(function(m,i){
-    box.innerHTML+='<div class="mi'+(m.done?' done':'')+'"><h4>'+(m.done?'✅ ':'')+'<span class="tname" onclick="editMile('+i+')" title="点击编辑">'+esc(m.t)+'</span> <span style="color:var(--muted);font-weight:400;font-size:12px">'+(m.d||'未设日期')+'</span></h4>'+
-      '<p><a href="javascript:void(0)" onclick="toggleMile('+i+')" style="color:var(--primary);font-size:12px">'+(m.done?'标记为未完成':'标记为已完成')+'</a></p></div>';
+
+/* ============ 知识库 ============ */
+var KB_SITES=[["市场数据", "米内网", "https://www.menet.com.cn", "中国医药市场数据、终端销售、品类与品牌排行"], ["市场数据", "药智网", "https://www.yaozh.com", "药品注册、一致性评价、集采中标、临床试验查询"], ["市场数据", "医药魔方", "https://www.pharmcube.com", "医药行业资讯、政策、投融资、管线与交易动态"], ["市场数据", "药渡", "https://data.pharmacodia.com", "药物研发数据库（靶点、临床管线、专利）"], ["市场数据", "PharnexCloud", "https://www.pharnexcloud.com", "医药研发大数据平台（临床、注册、交易）"], ["市场数据", "博普云", "https://www.bopuyun.com", "医药研发与注册申报数据服务"], ["市场数据", "Insight数据库", "https://db.dxy.cn", "丁香园新药情报库：临床/注册/交易数据"], ["市场数据", "医药云端工作室", "https://www.yiyaoyunduan.com", "集采、医保政策与市场分析"], ["市场数据", "中国医药网", "https://www.cnpharm.com", "官方行业媒体：政策监管动态、行业新闻"], ["市场数据", "艾瑞咨询", "https://www.iresearchbook.cn", "行业研究报告（含医药健康）"], ["市场数据", "中康科技", "https://www.sinohealth.cn", "药品终端零售市场数据与产业研究"], ["市场数据", "IQVIA艾昆纬", "https://www.iqvia.com", "全球医药市场研究与咨询"], ["市场数据", "弗若斯特沙利文", "https://www.frostchina.com", "医药行业研究报告与咨询"], ["市场数据", "动脉网", "https://www.vbdata.cn", "医疗健康产业创新与投融资数据"], ["药典标准", "中国药典在线", "https://ydz.chp.org.cn", "《中国药典》官方数字平台，查询药典正文与通则"], ["药典标准", "2025年版中国药典", "https://2025.chp.org.cn", "2025年版《中国药典》在线查询"], ["药典标准", "药典数据库", "https://db.ouryao.com/yaodian/v2025", "药典品种与标准检索（2025版）"], ["药典标准", "药典数据库2", "https://db2.ouryao.com", "药典/药品标准关联数据库"], ["药典标准", "DrugFuture标准库", "https://www.drugfuture.com/standard", "国产/进口药品标准查询"], ["药典标准", "新药信息", "http://www.newdruginfo.com", "新药注册受理与审评审批信息"], ["药典标准", "USP美国药典", "https://www.usp.org", "美国药典标准"], ["药典标准", "EP欧洲药典", "https://pheur.edqm.eu", "欧洲药典标准查询"], ["药典标准", "JP日本药局方", "https://www.mhlw.go.jp", "日本药典标准（厚生劳动省发布）"], ["药典标准", "英国药典BP", "https://www.pharmacopoeia.com", "英国药典标准"], ["监管政策", "国家药监局NMPA", "https://www.nmpa.gov.cn", "药品审评审批、公告、政策法规（官方权威）"], ["监管政策", "药品审评中心CDE", "https://www.cde.org.cn", "受理与审评进度、技术指导原则"], ["监管政策", "中检院NIFDC", "https://www.nifdc.org.cn", "药品检验、标准品、生物制品批签发"], ["监管政策", "国家医保局", "https://www.nhsa.gov.cn", "医保目录、集采、医保政策官方发布"], ["监管政策", "国家卫健委", "https://www.nhc.gov.cn", "临床用药管理、基本药物目录"], ["监管政策", "国家中医药管理局", "https://www.natcm.gov.cn", "中医药政策与管理"], ["监管政策", "市场监管总局", "https://www.samr.gov.cn", "广告、价格、反垄断监管"], ["监管政策", "国家标准全文公开", "https://std.samr.gov.cn", "国家标准免费查阅下载"], ["监管政策", "国务院政策文件库", "https://www.gov.cn/zhengce/xxgk/gjgzk/", "国务院政策文件检索"], ["监管政策", "司法部行政法规库", "https://xzfg.moj.gov.cn/search2.html", "行政法规检索"], ["监管政策", "WHO世界卫生组织", "https://www.who.int", "国际卫生政策、基本药物目录"], ["监管政策", "ICH", "https://www.ich.org", "国际药品注册技术指导原则"], ["监管政策", "美国FDA", "https://www.fda.gov", "美国药品审评、说明书、橙皮书"], ["监管政策", "欧盟EMA", "https://www.ema.europa.eu", "欧盟药品审评与公开评估报告"], ["监管政策", "日本PMDA", "https://www.pmda.go.jp", "日本药品医疗器械审评"], ["监管政策", "韩国MFDS", "https://www.mfds.go.kr", "韩国药品监管（亚洲市场参考）"], ["监管政策", "加拿大卫生部", "https://www.canada.ca/en/health-canada.html", "加拿大药品监管信息"], ["监管政策", "英国MHRA", "https://www.gov.uk/mhra", "英国药品监管"], ["临床试验", "WHO ICTRP", "https://trialsearch.who.int", "全球临床试验一站式检索"], ["临床试验", "ClinicalTrials.gov", "https://clinicaltrials.gov", "美国临床试验注册库"], ["临床试验", "中国药物临床试验登记", "https://www.chinadrugtrials.org.cn", "药物临床试验登记与信息公示（官方）"], ["临床试验", "中国临床试验注册中心", "https://www.chictr.org.cn", "中国临床试验注册平台"], ["临床试验", "中医药临床试验注册", "http://itmctr.ccebtcm.org.cn", "中医药特色临床试验注册"], ["临床试验", "ISRCTN", "https://www.isrctn.com", "英国主导的临床试验注册库"], ["临床试验", "EU CTR/CTIS", "https://euclinicaltrials.eu", "欧盟临床试验注册平台"], ["临床试验", "日本临床试验信息库", "https://rctportal.niph.go.jp", "日本临床试验登记"], ["临床试验", "ANZCTR", "https://www.anzctr.org.au", "澳大利亚-新西兰临床试验注册"], ["临床试验", "韩国CRIS", "https://cris.nih.go.kr", "韩国临床研究信息服务"], ["法律专利", "中国裁判文书网", "https://wenshu.court.gov.cn", "法院判决文书（医药诉讼、专利纠纷）"], ["法律专利", "国家法律法规数据库", "https://flk.npc.gov.cn", "法律、法规、司法解释官方库"], ["法律专利", "最高人民法院", "https://www.court.gov.cn", "司法解释、指导案例"], ["法律专利", "中国专利检索(DrugFuture)", "https://www.drugfuture.com/cnpat/cn_patent.asp", "中国专利检索"], ["法律专利", "专利汇", "https://www.patent9.com", "专利检索与下载"], ["法律专利", "佰腾网", "https://www.baiten.cn", "专利检索与分析"], ["法律专利", "专利之星", "https://www.patentstar.com.cn", "中国专利检索系统（免费好用）"], ["法律专利", "SooPAT", "https://www.soopat.com", "专利检索与下载"], ["法律专利", "智慧芽", "https://www.zhihuiya.com", "专利检索与知识产权分析"], ["法律专利", "国家知识产权局CNIPA", "https://www.cnipa.gov.cn", "专利官方检索与公布公告"], ["法律专利", "中国商标网", "https://sbj.cnipa.gov.cn", "商标查询（药品品牌核查）"], ["法律专利", "WIPO PatentScope", "https://patentscope.wipo.int", "国际专利检索（PCT）"], ["中医药文献", "古今医案", "https://www.gxdq.com", "中医医案文献检索"], ["中医药文献", "中医古籍库", "https://guji.unihan.com.cn", "中医古籍全文数字化平台"], ["中医药文献", "中医大词典", "http://dh.ersjk.com", "中医术语词典查询"], ["中医药文献", "中医根", "https://zhongyigen.com", "中医经典古籍文献"], ["中医药文献", "中医百科", "https://zhongyibaike.com", "中医知识百科"], ["中医药文献", "岐黄网", "https://qihuang.vip", "中医文献资源"], ["中医药文献", "HKBU中药材数据库", "https://sys01.lib.hkbu.edu.hk/cmed/mmid/index.php", "香港浸会大学中药材图像与鉴定资料"], ["中医药文献", "中医药古籍平台", "https://gydc-v4.cintcm.cn", "中国中医科学院古籍数字化"], ["中医药文献", "大医", "https://www.dayi.org.cn", "中医经典文献与知识服务"], ["中医药文献", "中医药知识库", "https://www.tcmkb.cn", "中医药结构化知识（方剂、术语）"], ["中医药文献", "中医药术语", "http://tcmtt.cn", "中医药术语数据"], ["中医药文献", "cintcm", "http://www.cintcm.com", "中医药行业信息与资讯"], ["中医药文献", "中国哲学书电子化计划", "https://ctext.org", "先秦两汉典籍原文（含医籍背景）"], ["中医药文献", "中华医典", "https://www.zhonghuayidian.com", "中医古籍全文数据库（专业版需订阅）"], ["中医药文献", "中药大辞典在线", "https://www.zysj.com.cn", "中药学专业知识库"], ["中医药文献", "中国中医药报", "https://www.cnzyxww.com", "中医药行业权威报纸"], ["中医药文献", "中国中医科学院", "http://www.catcm.ac.cn", "国家级中医药科研机构动态与成果"], ["中医药文献", "寻医问药网", "https://www.xywy.com", "中医健康门户与疾病知识"], ["中药数据库与研究", "TCMID", "http://www.tcmid.cn", "中药化学成分与靶点数据库（北大）"], ["中药数据库与研究", "TCMSP", "https://old.tcmsp-e.com", "中药系统药理学数据库（网络药理学常用）"], ["中药数据库与研究", "BATMAN-TCM", "http://bionet.ncpsb.org.cn/batman-tcm", "中药成分-靶点-疾病网络分析平台"], ["中药数据库与研究", "ETCM", "http://www.tcmip.cn/ETCM", "中医证候相关数据库"], ["中药数据库与研究", "SymMap", "https://www.symmap.org", "中医证候与现代医学关联数据库"], ["中药数据库与研究", "TCMIP", "http://www.tcmip.cn", "中医药整合药理学网络计算平台"], ["中药数据库与研究", "NPASS", "https://bidd.group/NPASS", "天然产物活性与物种来源数据库"], ["中药数据库与研究", "PubChem", "https://pubchem.ncbi.nlm.nih.gov", "化合物、生物活性、药理数据（开放）"], ["中药材市场", "康美中药网", "https://www.kmzyw.com.cn", "中药材价格行情与供求信息"], ["中药材市场", "药通网", "https://www.yt1998.com", "中药材市场行情与品种分析"], ["中药材市场", "中药材天地网", "https://www.zyctd.com", "中药材价格、行情与产业数据"], ["物种植物", "国家动物博物馆", "http://museum.ioz.ac.cn/index.html", "动物物种与标本信息"], ["物种植物", "物种库", "https://species.sciencereading.cn", "物种信息与科学文库"], ["物种植物", "中国生物物种名录", "http://www.sp2000.org.cn", "权威物种名录与分类"], ["物种植物", "植物通", "https://www.zhiwutong.com", "植物物种资料与图片"], ["物种植物", "PlantPlus", "https://www.plantplus.cn", "植物数据平台"], ["物种植物", "中国数字植物标本馆", "https://www.cvh.ac.cn", "植物标本、分布与鉴定"], ["物种植物", "植物智iPlant", "https://www.iplant.cn", "植物物种信息+AI识别"], ["物种植物", "PPBC中国植物图像库", "https://ppbc.iplant.cn", "植物高清图片鉴定"], ["物种植物", "中国植物志FRPS", "http://www.iplant.cn/frps", "《中国植物志》权威电子版"], ["物种植物", "Flora of China", "http://foc.iplant.cn", "中国植物志英文修订版"], ["物种植物", "CFH自然标本馆", "https://www.cfh.ac.cn", "自然标本与物种照片"], ["物种植物", "GBIF", "https://www.gbif.org", "全球生物多样性数据平台"], ["物种植物", "药用植物资源", "http://herb.ac.cn", "药用植物资源信息"], ["物种植物", "NAPSTIC", "https://napstic.cn", "药用植物保护与资源数据"], ["化学数据", "ChemicalBook", "https://www.chemicalbook.com", "化合物物性、MSDS、供应商信息"], ["化学数据", "有机化学数据库", "https://organchem.csdb.cn", "有机化合物谱学与物性数据"], ["化学数据", "DrugFuture", "https://www.drugfuture.com", "药物信息与标准查询"], ["化学数据", "ChemSpider", "https://www.chemspider.com", "化合物结构检索（RSC）"], ["化学数据", "DrugBank", "https://go.drugbank.com", "药物分子与靶点数据库（部分付费）"], ["化学数据", "ChEMBL", "https://www.ebi.ac.uk/chembl", "生物活性分子数据库（EMBL）"], ["化学数据", "BindingDB", "https://www.bindingdb.org", "药物-靶点结合数据"], ["化学数据", "NIST化学手册", "https://webbook.nist.gov/chemistry", "化合物谱学与热力学数据"], ["化学数据", "SDBS谱图库", "https://sdbs.db.aist.go.jp", "免费有机化合物谱图数据库"], ["中文期刊", "SciEngine", "https://www.sciengine.com", "中文科技期刊集群全文平台"], ["中文期刊", "药学学报", "https://www.yxxb.com.cn", "药学类核心期刊"], ["中文期刊", "药物评价研究", "https://www.tiprpress.com/ywpjyj/home", "药物评价与临床研究期刊"], ["中文期刊", "中国中药杂志", "https://www.tcmjc.com/zgzy/home", "中药领域权威期刊"], ["中文期刊", "中国药事", "https://zgys.nifdc.org.cn", "中检院主办：药事管理期刊"], ["中文期刊", "药物分析杂志", "https://ywfx.nifdc.org.cn", "中检院主办：药物分析期刊"], ["中文期刊", "中药材", "https://www.trcw.ac.cn", "中药材研究期刊"], ["中文期刊", "时珍国医国药", "http://www.shizhenchina.com", "中医药综合期刊"], ["中文期刊", "中华中医药杂志", "http://www.zhzyyzz.com", "中华中医药学会期刊"], ["中文期刊", "中国中医药信息杂志", "https://www.zgylxtb.cn", "中医药信息期刊"], ["中文期刊", "中国中医科学院期刊群", "https://www.tiprpress.com", "中医药期刊集群平台"], ["中文期刊", "世界科学技术-中医药现代化", "https://www.syfjxzz.com", "中医药现代化研究期刊"], ["中文期刊", "药学进展", "http://www.newdrug.cn", "药学动态与综述"], ["中文期刊", "临床药物治疗杂志", "http://www.lcywzlzz.com", "临床药学期刊"], ["中文期刊", "药学研究", "http://www.yaoxueyanjiu.org.cn", "药学研究期刊"], ["中文期刊", "中国药学会期刊群", "https://www.medjournals.cn", "多本药学期刊集群"], ["中文期刊", "中国知网CNKI", "https://www.cnki.net", "中文文献全文总库（最全面）"], ["中文期刊", "万方数据", "https://www.wanfangdata.com.cn", "期刊/学位论文/会议文献"], ["中文期刊", "维普网", "https://www.cqvip.com", "中文期刊数据库"], ["中文期刊", "中华医学会期刊", "https://www.yiigle.com", "中华系列医学期刊全文"], ["中文期刊", "掌桥科研", "https://www.zhangqiaokeyan.com", "中外文献一站式检索下载"], ["中文期刊", "中科院公益学术平台", "https://pubscholar.cn", "免费中英文学术文献检索"], ["文献检索", "Web of Science", "https://webofscience.clarivate.cn", "权威引文索引数据库"], ["文献检索", "Scopus", "https://www.scopus.com", "引文摘要数据库"], ["文献检索", "Semantic Scholar", "https://www.semanticscholar.org", "AI驱动学术搜索"], ["文献检索", "OpenAlex", "https://openalex.org", "开放学术图谱"], ["文献检索", "Crossref", "https://www.crossref.org", "DOI文献元数据查询"], ["文献检索", "OpenCitations", "https://opencitations.net", "开放引文数据"], ["文献检索", "Dimensions", "https://www.dimensions.ai", "文献-专利-经费关联分析"], ["文献检索", "Lens", "https://www.lens.org", "文献+专利综合检索"], ["文献检索", "Scilit", "https://www.scilit.com", "开放文献检索与学科追踪"], ["文献检索", "BASE", "https://www.base-search.net", "德国学术搜索引擎（开放）"], ["文献检索", "CORE", "https://core.ac.uk", "开放获取论文聚合平台"], ["文献检索", "Connected Papers", "https://www.connectedpapers.com", "文献关联图谱可视化"], ["国际期刊", "PubMed", "https://pubmed.ncbi.nlm.nih.gov", "生物医学文献摘要检索（必备）"], ["国际期刊", "PubMed Central", "https://pmc.ncbi.nlm.nih.gov", "免费生物医学全文库"], ["国际期刊", "Europe PMC", "https://europepmc.org", "欧洲版PMC，含预印本"], ["国际期刊", "medRxiv", "https://www.medrxiv.org", "医学预印本平台"], ["国际期刊", "ResearchGate", "https://www.researchgate.net", "学者社区与论文分享平台"], ["国际期刊", "The Lancet", "https://www.thelancet.com", "柳叶刀系列期刊"], ["国际期刊", "NEJM", "https://www.nejm.org", "新英格兰医学杂志"], ["国际期刊", "JAMA", "https://jamanetwork.com", "美国医学会杂志系列"], ["国际期刊", "BMJ", "https://www.bmj.com", "英国医学杂志"], ["国际期刊", "Nature", "https://www.nature.com", "顶级综合期刊"], ["国际期刊", "Science", "https://www.science.org", "顶级综合期刊"], ["国际期刊", "MDPI", "https://www.mdpi.com", "开放获取期刊"], ["国际期刊", "WJG", "https://www.wjgnet.com", "消化领域开放获取期刊"], ["国际期刊", "ACS Publications", "https://pubs.acs.org", "美国化学会期刊（药物化学）"], ["国际期刊", "Wiley Online Library", "https://onlinelibrary.wiley.com", "国际出版商全文平台"], ["国际期刊", "SpringerLink", "https://link.springer.com", "国际出版商全文平台"], ["国际期刊", "ScienceDirect", "https://www.sciencedirect.com", "Elsevier全文平台"], ["国际期刊", "Taylor & Francis", "https://www.tandfonline.com", "国际出版商全文平台"], ["AI工具", "Kimi", "https://www.kimi.com", "AI助手（长文本、联网检索）"], ["AI工具", "DeepSeek", "https://www.deepseek.com", "AI助手与推理模型"], ["AI工具", "豆包", "https://www.doubao.com", "字节跳动AI助手"], ["AI工具", "通义千问", "https://www.qianwen.com", "阿里巴巴AI助手"], ["AI工具", "文心一言", "https://yiyan.baidu.com", "百度AI助手"], ["AI工具", "讯飞星火", "https://xinghuo.xfyun.cn", "科大讯飞AI助手"], ["AI工具", "Claude Code", "https://code.claude.com", "AI编程助手"], ["AI工具", "AMiner", "https://www.aminer.cn", "学术知识图谱、学者与论文检索"], ["AI工具", "秘塔学术", "https://metaso.cn", "AI学术搜索与问答"], ["AI工具", "PubMed.ai", "https://www.pubmed.ai", "基于PubMed的AI文献问答"], ["AI工具", "Consensus", "https://consensus.app", "基于论文证据的AI问答"], ["AI工具", "SciSpace", "https://typeset.io", "AI文献阅读与论文解析"], ["AI工具", "简单AI镜像", "https://xsimplechat.com", "AI模型访问入口"], ["AI工具", "蓝鲸AI", "https://ai.lanjingai.org", "AI模型聚合站"], ["AI工具", "NVIDIA Build", "https://build.nvidia.com", "NVIDIA模型体验平台"], ["AI工具", "Taskade", "https://www.taskade.com", "AI协作与任务管理"], ["AI工具", "飞书", "https://www.feishu.cn", "在线协作办公平台"], ["AI工具", "GitHub", "https://github.com", "代码托管与开源项目"], ["仪器试剂", "Thermo Fisher", "https://www.thermofisher.cn", "综合科学仪器与试剂"], ["仪器试剂", "Agilent", "https://www.agilent.com.cn", "色谱、质谱、光谱分析仪器"], ["仪器试剂", "岛津", "https://www.shimadzu.com.cn", "分析仪器"], ["仪器试剂", "Waters", "https://www.waters.com", "液相色谱与质谱"], ["仪器试剂", "Sigma-Aldrich", "https://www.sigmaaldrich.cn", "化学试剂与标准品"], ["仪器试剂", "珀金埃尔默", "https://www.perkinelmer.com.cn", "分析仪器与诊断"], ["仪器试剂", "布鲁克", "https://www.bruker.com", "核磁、质谱仪器"], ["仪器试剂", "梅特勒托利多", "https://www.mt.com", "天平与实验室仪器"], ["仪器试剂", "赛多利斯", "https://www.sartorius.com.cn", "天平、过滤与生物工艺设备"], ["仪器试剂", "艾本德", "https://www.eppendorf.com.cn", "移液器与实验室耗材"], ["仪器试剂", "阿拉丁试剂", "https://www.reagent.com.cn", "化学试剂"], ["仪器试剂", "麦克林", "https://www.macklin.cn", "国产科研试剂品牌"], ["仪器试剂", "月旭科技", "https://www.welchmat.com", "色谱柱与耗材"], ["仪器试剂", "泰坦科技", "https://www.titansci.com", "试剂耗材一站式平台"], ["企业基金", "上交所", "https://www.sse.com.cn", "上市公司公告、年报、监管信息"], ["企业基金", "深交所", "https://www.szse.cn", "上市公司公告、年报、监管信息"], ["企业基金", "巨潮资讯网", "https://www.cninfo.com.cn", "上市公司公告与年报（官方指定平台）"], ["企业基金", "港交所披露易", "https://www.hkexnews.hk", "港股上市药企公告"], ["企业基金", "国家自然科学基金委", "https://www.nsfc.gov.cn", "基金指南与立项信息查询"], ["企业基金", "执行信息公开网", "https://zxgk.court.gov.cn", "企业/个人涉诉与执行信息"], ["企业基金", "企业信用信息公示系统", "https://www.gsxt.gov.cn", "企业工商信息官方查询"], ["企业基金", "天眼查", "https://www.tianyancha.com", "企业工商与股权信息（基础免费）"], ["企业基金", "企查查", "https://www.qcc.com", "企业信息查询（基础免费）"], ["医药工具书", "丁香园", "https://www.dxy.cn", "医生社区、临床与药学专业交流"], ["医药工具书", "用药助手", "https://drugs.dxy.cn", "药品说明书与临床用药查询"], ["医药工具书", "默沙东诊疗手册", "https://www.msdmanuals.cn", "权威临床诊疗参考（中文版免费）"], ["医药工具书", "UpToDate", "https://www.uptodate.com", "临床决策支持（需订阅，最权威）"], ["医药工具书", "iMedical图书", "https://www.imedbooks.com", "医学电子书"], ["医药工具书", "MedlinePlus", "https://medlineplus.gov", "NIH面向公众的医学百科"], ["医药工具书", "Radiopaedia", "https://radiopaedia.org", "影像诊断百科（放射学参考）"], ["科学数据", "国家哲学社会科学文献中心", "https://www.ncpssd.cn", "社科文献免费下载"], ["科学数据", "国家图书馆", "http://read.nlc.cn", "图书、古籍与期刊数字资源"], ["科学数据", "中科院文献情报中心", "https://www.escience.org.cn", "科研文献与情报服务"], ["科学数据", "中科院数据云", "https://www.casdc.cn", "科学数据存储与共享"], ["科学数据", "科学数据银行", "https://www.scidb.cn", "科学数据集发布与共享"], ["科学数据", "中国科技论文在线", "https://www.paper.edu.cn", "首发论文开放获取平台"], ["科学数据", "中国预印本ChinaXiv", "https://chinaxiv.org", "中国科学院预印本平台"], ["科学数据", "Figshare", "https://figshare.com", "科研数据与图表共享"], ["科学数据", "Zenodo", "https://zenodo.org", "欧洲开放科研数据仓储"], ["效率工具", "汉典", "https://www.zdic.net", "汉语字词典（中药名释义）"], ["效率工具", "诗词", "https://www.shicile.com", "古诗词检索"], ["效率工具", "MBALib", "https://wiki.mbalib.com", "经管百科"], ["效率工具", "Free Dictionary", "https://encyclopedia.thefreedictionary.com", "英文百科"], ["效率工具", "爱思想", "https://www.aisixiang.com", "人文社科思想库"], ["效率工具", "CSDN", "https://www.csdn.net", "IT技术社区"], ["效率工具", "MSDN我告诉你", "https://msdn.itellyou.cn", "软件镜像"], ["效率工具", "WiseCleaner", "https://www.wisecleaner.com", "系统清理工具"], ["效率工具", "Zotero", "https://www.zotero.org", "文献管理软件"], ["效率工具", "二维码生成器", "https://www.qr-code-generator.com", "二维码生成"], ["效率工具", "iLovePDF", "https://www.ilovepdf.com", "PDF在线转换/压缩/编辑"], ["效率工具", "CleverPDF", "https://www.cleverpdf.com", "PDF在线转换工具"], ["效率工具", "PDF24", "https://tools.pdf24.org", "PDF在线工具集"], ["效率工具", "PDFWind", "https://www.pdfwind.com", "PDF在线工具"], ["效率工具", "Sejda", "https://www.sejda.com", "PDF编辑与转换"], ["效率工具", "docsmall", "https://docsmall.com", "文件压缩与转换"], ["效率工具", "OnlineOCR", "https://www.onlineocr.net", "图片/扫描件文字识别"], ["效率工具", "Smallpdf", "https://smallpdf.com", "PDF在线工具"], ["效率工具", "TinyPNG", "https://tinypng.com", "图片在线压缩"], ["效率工具", "Remove.bg", "https://www.remove.bg", "图片背景一键去除"], ["效率工具", "BeJSON", "https://www.bejson.com", "JSON/代码在线工具"], ["效率工具", "ProcessOn", "https://www.processon.com", "在线流程图与思维导图"]];
+var KB_MATRIX=[["QM-001", "药品研发质量管理手册", "一", "质量手册", "R2;R3;R6;R11(Q10)", "R6核查要点（一）质量管理：应建立与研究内容相适应的组织机构和质量管理体系；R10作体系参考"], ["QP-001", "文件管理规程", "二", "通用管理", "R6;R7", "核查要点3.文件和记录：研发全过程应有相应记录，包括预试验和探索性研究数据"], ["QP-002", "文件编码管理规程", "二", "通用管理", "R6;R7", "内部规定性文件，引用上位文件与数据管理要求"], ["QP-003", "原始记录管理规程", "二", "通用管理", "R7;R6", "数据可靠性：纸质图谱/测试样本编码与原始记录对应、可溯源"], ["QP-004", "数据可靠性（数据完整性）管理规程", "二", "通用管理", "R7;R6", "R7；核查要点九、数据可靠性：申报资料数据真实、准确、可溯源，与原始数据一致"], ["QP-005", "电子数据与计算机化系统管理规程", "二", "通用管理", "R7;R6;R8(四部)", "数字信号处理设备应开启审计追踪且不可修改/关闭；用户独立账号密码"], ["QP-006", "档案管理规程", "二", "通用管理", "R2;R7", "项目结束后记录及时归档；申报资料归档"], ["QP-007", "组织机构与岗位职责管理规程", "二", "通用管理", "R6;R2", "核查要点（一）质量管理：相适应的组织机构、具有适当资质的人员"], ["QP-008", "人员培训与考核管理规程", "二", "通用管理", "R6", "人员资质与培训要求"], ["QP-009", "关键岗位人员资质与授权管理规程", "二", "通用管理", "R6", "数据归属到具体操作人；关键研究活动人员资质"], ["QP-010", "药学研究方案设计与审核管理规程", "二", "通用管理", "R4;R5", "R4第3.1~3.5项；R5：申请临床试验前应完成初步药学研究（固定药味与给药途径、明确基原/炮制/工艺、质量标准研究、安全性相关质量控制研究）"], ["QP-011", "研发偏差管理规程", "二", "通用管理", "R6;R11(Q9)", "核查要点4.变更和偏差管理"], ["QP-012", "变更管理规程（药学研究期间）", "二", "通用管理", "R6;R11(Q9);R3", "变更和偏差管理；质量风险管理原则"], ["QP-013", "OOS/OOT调查处理规程", "二", "通用管理", "R8(通则9101);R6", "通则9101分析方法验证；质量控制要点：原始记录、实验图谱数据完整可靠可溯源"], ["QP-014", "纠正与预防措施（CAPA）管理规程", "二", "通用管理", "R11(Q9;Q10)", "质量风险管理与药品质量体系"], ["QP-015", "质量风险管理规程", "二", "通用管理", "R11(Q9);R5;R3", "Q9(R1)；R5：建立完善符合中药特点的全过程质量控制体系"], ["QP-016", "委托检验管理规程", "二", "通用管理", "R6;R2", "核查要点：委托检验应签订合同/协议，委托方应审计，确保数据可靠"], ["QP-017", "物料、试剂与试药管理规程", "二", "通用管理", "R6", "核查要点（四）：原辅料具有合法来源（供货协议、发票等）"], ["QP-018", "对照品/标准品管理规程", "二", "通用管理", "R6;R8(四部)", "核查要点（七）：对照品/标准品合法来源、有效期内使用；工作对照品应有完整标化记录"], ["QP-019", "样品管理规程", "二", "通用管理", "R6", "样品试制量、剩余量与使用量对应；保留试制样品实物，关键批次上市申请批准前不得销毁"], ["QP-020", "留样与稳定性样品管理规程", "二", "通用管理", "R6", "稳定性样品所用直接接触药品包装材料应与申报资料一致"], ["QP-021", "仪器设备管理规程", "二", "通用管理", "R6;R17", "核查要点（五）1：关键批次研究用仪器设备经必要检定或校验合格，有使用/维护/检定记录"], ["QP-022", "实验室安全管理规程", "二", "通用管理", "R16", "危险化学品管理；生物安全"], ["RES-001", "中药材资源评估技术规程", "三", "资源与基原", "R4(3.1.2);R5", "R4药材资源评估；R5：野生药材按相关要求开展资源评估，珍稀濒危药材符合法规并考虑种植养殖可行性"], ["RES-002", "中药材基原鉴定SOP（形态/显微）", "三", "资源与基原", "R4;R8(一部)", "R4：提供基原（科名、中文名、拉丁学名）、药用部位；基原易混淆品种需提供鉴定报告；多基原药材必须固定基原"], ["RES-003", "中药材DNA条形码分子鉴定SOP", "三", "资源与基原", "R8(四部通则9102)", "中药材DNA条形码分子鉴定法指导原则"], ["RES-004", "野生/濒危药材来源合规性评价SOP", "三", "资源与基原", "R4;R12", "R4：涉及濒危物种药材应符合国家有关规定、保证可持续利用、特别注意来源合法性；CITES附录等"], ["RES-005", "中药材产地、采收期与产地加工SOP", "三", "资源与基原", "R5;R8(一部);R9", "R5：明确基原、药用部位、质量要求，关注产地、采收期；GAP"], ["RES-006", "药材质量均一性研究SOP", "三", "资源与基原", "R5;R3", "全过程质量控制：不同产地/批次质量波动评价"], ["HER-001", "中药材检验SOP", "三", "药材质量", "R8(一部;通则0211)", "各药材标准；药材和饮片取样法"], ["HER-002", "重金属及有害元素检查SOP", "三", "药材质量", "R8(通则2321);R11(Q3D)", "铅镉砷汞铜测定法；元素杂质指导原则"], ["HER-003", "农药残留量检查SOP", "三", "药材质量", "R8(通则2341)", "农药残留量测定法（GB 2763可参考）"], ["HER-004", "真菌毒素检查SOP", "三", "药材质量", "R8(通则2351)", "真菌毒素测定法（GB 2761可参考）"], ["HER-005", "药材包装、储藏与养护SOP", "三", "药材质量", "R9;R8(一部)", "GAP；各品种'贮藏'项"], ["PRP-001", "炮制工艺研究SOP", "三", "炮制", "R8(一部炮制通则);R14;R4(3.3.4.3)", "炮制通则；省级炮制规范；R4：前处理工艺及具体工艺参数"], ["PRP-002", "炮制前后成分变化比较研究SOP", "三", "炮制", "R5;R3", "炮制必要性佐证；中医药理论指导"], ["PRP-003", "毒性药材炮制减毒控制SOP（建议增设）", "三", "炮制", "R13;R8(一部)", "医疗用毒性药品品种控制；药典毒性饮片项下"], ["EXT-001", "提取工艺研究SOP", "三", "提取工艺", "R4(3.3.4.4);R5", "提取纯化工艺流程、主要工艺参数及范围、确定依据"], ["EXT-002", "浓缩工艺研究SOP", "三", "提取工艺", "R4(3.3.4.5)", "浓缩工艺研究资料"], ["EXT-003", "干燥工艺研究SOP", "三", "提取工艺", "R4(3.3.4.6)", "干燥工艺研究资料"], ["EXT-004", "纯化/除杂工艺研究SOP", "三", "提取工艺", "R4(3.3.4.4)", "纯化工艺研究"], ["EXT-005", "残留溶剂与成分转移率分析SOP", "三", "提取工艺", "R11(Q3C);R8(通则0861)", "残留溶剂限度与测定"], ["FTM-001", "剂型选择与处方筛选SOP", "三", "制剂成型", "R4(3.3.4.2);R8(四部制剂通则)", "剂型选择依据；0100系列制剂通则"], ["FTM-002", "制剂成型工艺研究SOP", "三", "制剂成型", "R4(3.3.4.7)", "中间体、辅料研究及制剂处方筛选资料"], ["FTM-003", "中试放大研究SOP", "三", "制剂成型", "R4(3.3.5);R5", "申请临床试验时以中试放大规模提供批处方、工艺描述、关键步骤和中间体控制、生产数据"], ["FTM-004", "中试批间质量一致性评价SOP", "三", "制剂成型", "R5;R3", "临床试验用样品质量稳定；全过程质量控制"], ["QLT-001", "质量标准草案起草SOP", "三", "质量研究", "R4(3.4);R10", "制剂质量与质量标准研究；产品质量标准参照《中国药典》格式和内容撰写"], ["QLT-002", "鉴别方法研究SOP", "三", "质量研究", "R8(四部:0502/0512/2001)", "TLC、HPLC、显微鉴别法等通则"], ["QLT-003", "指纹图谱/特征图谱研究SOP", "三", "质量研究", "R3;R5;CDE注射剂指纹图谱指导原则", "整体质量控制理念；2000年《中药注射剂指纹图谱研究技术指导原则（试行）》方法学框架可参照"], ["QLT-004", "含量测定方法学研究SOP", "三", "质量研究", "R8(通则9101);R11(Q2(R2);Q14)", "药品质量标准分析方法验证指导原则；ICH分析方法验证与开发"], ["QLT-005", "多指标成分含量测定SOP", "三", "质量研究", "R8(通则9101);R11(Q2(R2))", "同上"], ["QLT-006", "检查项研究SOP", "三", "质量研究", "R8(通则0832/2302)", "水分测定法、灰分测定法"], ["QLT-007", "杂质谱研究SOP", "三", "质量研究", "R5;R11(Q3系列,概念参考)", "杂质研究技术要求"], ["QLT-008", "自制对照品制备与标化SOP", "三", "质量研究", "R6;R8(四部标准物质通则)", "工作对照品完整标化记录；国家药品标准物质管理规定"], ["QLT-009", "包装材料选择与相容性研究SOP", "三", "质量研究", "R4(1.3.7);R18;R8(四部药包材通则)", "药包材合法来源证明、授权使用书；关联审评审批；药包材通则"], ["QLT-010", "质量标准复核与放行审核SOP", "三", "质量研究", "R10", "药品标准管理"], ["STA-001", "影响因素试验SOP", "三", "稳定性", "R8(通则9001);R11(Q1A(R2))", "原料药物与制剂稳定性试验指导原则"], ["STA-002", "加速试验与长期试验SOP", "三", "稳定性", "R8(通则9001);R11(Q1A(R2));R4", "R4：简述稳定性考察条件及结果，评价稳定性，拟定有效期及贮藏条件"], ["STA-003", "稳定性数据评价与有效期拟定SOP", "三", "稳定性", "R11(Q1E);R8(通则9001)", "稳定性数据评价"], ["STA-004", "稳定性OOS/OOT处理SOP", "三", "稳定性", "STA-001;QP-013", "稳定性试验与OOS处理衔接"], ["REC-001", "药学研究总方案/总结报告模板", "四", "记录模板", "R4;R5;R15", "对应申报资料3.1~3.5结构；综述撰写格式指导原则"], ["REC-002", "药材资源评估报告模板", "四", "记录模板", "R4(3.1);R5", "资源评估资料结构"], ["REC-003", "基原鉴定研究报告模板", "四", "记录模板", "R4(3.1);R8", "基原鉴定报告要求"], ["REC-004", "炮制工艺研究报告模板", "四", "记录模板", "R4(3.3.4.3)", "前处理工艺研究资料"], ["REC-005", "提取工艺研究报告模板", "四", "记录模板", "R4(3.3.4.4~3.3.4.6)", "提取、浓缩、干燥工艺研究资料"], ["REC-006", "制剂成型研究报告模板", "四", "记录模板", "R4(3.3.4.2/3.3.4.7)", "剂型选择与成型工艺资料"], ["REC-007", "中试研究批记录模板", "四", "记录模板", "R4(3.3.5)", "中试批处方、生产数据"], ["REC-008", "质量标准研究报告模板", "四", "记录模板", "R4(3.4);R10", "质量研究与标准起草"], ["REC-009", "方法学验证方案与报告模板", "四", "记录模板", "R8(通则9101);R11(Q2(R2))", "验证内容与ICH要求"], ["REC-010", "指纹图谱研究报告模板", "四", "记录模板", "R3;R5", "指纹图谱建立与批次相似度评价"], ["REC-011", "稳定性研究方案与报告模板", "四", "记录模板", "R8(通则9001);R4(3.5)", "稳定性考察方案与结果表述"], ["REC-012", "原始实验记录本（分专业）", "四", "记录模板", "R7;R6", "数据可靠性全部要点"], ["FM-001", "偏差报告与处理记录表", "四", "表单", "R6;QP-011", "变更和偏差管理"], ["FM-002", "变更申请与审批表", "四", "表单", "R6;QP-012", "变更分级管理"], ["FM-003", "CAPA记录表", "四", "表单", "R11(Q9)", "—"], ["FM-004", "OOS/OOT调查表", "四", "表单", "R8(通则9101);QP-013", "—"], ["FM-005", "培训记录与考核表", "四", "表单", "R6", "人员培训"], ["FM-006", "人员资质授权表", "四", "表单", "R6", "数据归属与授权"], ["FM-007", "样品接收/发放/销毁台账", "四", "表单", "R6;QP-019", "样品量对应与实物保留"], ["FM-008", "留样台账", "四", "表单", "R6;QP-020", "留样管理"], ["FM-009", "对照品/标准品台账", "四", "表单", "R6;QP-018", "来源、效期、标化记录"], ["FM-010", "稳定性样品登记与考察记录表", "四", "表单", "R6;STA-002", "稳定性样品管理"], ["FM-011", "仪器使用/维护/校准记录表", "四", "表单", "R6;QP-021", "仪器使用记录"], ["FM-012", "委托检验申请与归档表", "四", "表单", "R6;QP-016", "委托协议与审计"], ["FM-013", "文件分发/回收/销毁记录表", "四", "表单", "R7;QP-001", "文件受控"], ["FM-014", "申报资料自查表（对照研制现场核查要点）", "四", "表单", "R6", "逐条对照核查要点自查"]];
+var KB_REFS=[["R1", "《中华人民共和国药品管理法》（2019年修订）", "上位法"], ["R2", "《药品注册管理办法》（国家市场监督管理总局令第27号，2020-07-01施行）", "注册基本规章"], ["R3", "《中药注册管理专门规定》（国家药监局2023年第20号公告，2023-07-01施行）", "中药注册专门规章，'三结合'审评、全过程质量控制理念来源"], ["R4", "《中药注册分类及申报资料要求》（国家药监局2020年第68号通告，自2021-01-01起按新要求提交申报资料）", "药学研究资料3.1~3.5项的直接撰写依据"], ["R5", "《中药新药研究各阶段药学研究技术指导原则（试行）》（药审中心发布）", "药学研究各阶段技术要求总纲；中药复方新药适用，其他类别参照执行"], ["R6", "《药品注册核查工作程序（试行）》及《药品注册核查要点与判定原则（药学研制和生产现场）（试行）》（国家药监局食品药品审核查验中心2021年第30号通告，2022-01-01施行）", "药品注册研制现场核查直接判定依据"], ["R7", "《药品记录与数据管理要求（试行）》（国家药监局2020年第74号公告）", "记录与数据完整性管理"], ["R8", "《中国药典》2025年版（一部、四部）", "现行版（2025-10-01起施行，替代2020年版）：药材/饮片标准、炮制通则、四部通用技术通则"], ["R9", "《中药材生产质量管理规范》（国家药监局等四部门2022年第22号公告，2022-03-01发布）", "药材种植养殖、采收加工源头管理（GAP）"], ["R10", "《药品标准管理办法》（国家市场监督管理总局令第86号，2023-07-01施行）", "药品标准全生命周期管理"], ["R11", "ICH Q2(R2)/Q14（分析方法验证与开发）、Q1A(R2)/Q1E（稳定性）、Q3C（残留溶剂）、Q3D(R2)（元素杂质）、Q9(R1)（质量风险管理）、Q10（药品质量体系，自愿参考）", "方法学与风险管理技术支撑，已在我国适用/转化"], ["R12", "《野生药材资源保护管理条例》（国务院）、《国家重点保护野生药材物种名录》、《国家重点保护野生植物名录》（2021年调整）、《濒危野生动植物种国际贸易公约》（CITES）附录", "药材来源合法性、可持续利用"], ["R13", "《医疗用毒性药品管理办法》（国务院令第23号）", "含毒性药味品种控制"], ["R14", "各省级《中药饮片炮制规范》", "饮片炮制法定依据"], ["R15", "CDE《中药、天然药物综述资料撰写的格式和内容的技术指导原则》系列（国食药监注〔2006〕444号发布的一批）", "研究报告/综述撰写格式参考"], ["R16", "《危险化学品安全管理条例》（国务院令第591号）、GB 19489《实验室 生物安全通用要求》", "实验室安全管理"], ["R17", "《中华人民共和国计量法》", "计量器具检定/校准"], ["R18", "药品原辅包与制剂关联审评审批有关规定（国家药监局公告）", "药包材、药用辅料合法性（授权使用书）"]];
+var KB_NOTES=["1. 引用格式：每份SOP首页'参考依据'栏写明'文件名+文号/公告号+年份'，并注明具体条款（如 R4-3.3.4.4）。", "2. 版本时效：R8以现行《中国药典》2025年版为准（2025-10-01施行，已替代2020年版）；建立受控法规清单（REF类），每半年核查更新。", "3. ICH使用策略：方法学验证/开发引用Q2(R2)、Q14；稳定性引用Q1A(R2)/Q1E；风险管理引用Q9(R1)。法规符合性以R3、R4、R5为主线，ICH作技术方法学支撑。", "4. 委托场景：凡引用R6委托条款的文件，对应研究委托外部完成时，需增加受托方资质审计记录（核查可延伸至中药材、饮片、提取物供应商）。", "5. 本矩阵为体系受控文件附件，文件新增/修订时同步更新矩阵版本号。"];
+
+function renderKB(){renderKBSites();renderKBMatrix();renderKBRefs();}
+function renderKBSites(){
+  var q=(document.getElementById('kbSiteQ').value||'').trim().toLowerCase();
+  var sel=document.getElementById('kbSiteCat'),cur=sel.value;
+  var cats=[];
+  KB_SITES.forEach(function(s){if(cats.indexOf(s[0])<0)cats.push(s[0]);});
+  sel.innerHTML='<option value="">全部分类</option>';
+  cats.forEach(function(c){var o=document.createElement('option');o.value=c;
+    o.textContent=c+'（'+KB_SITES.filter(function(s){return s[0]===c;}).length+'）';sel.appendChild(o);});
+  sel.value=cur;
+  var cat=sel.value, box=document.getElementById('kbSites'), shown=0;
+  box.innerHTML='';
+  cats.forEach(function(c){
+    if(cat&&c!==cat)return;
+    var items=KB_SITES.filter(function(s){return s[0]===c&&(!q||s[1].toLowerCase().indexOf(q)>=0||s[3].toLowerCase().indexOf(q)>=0);});
+    if(!items.length)return;
+    shown+=items.length;
+    var h='<h4 class="kb-cat">'+esc(c)+'<span class="gm-count">（'+items.length+'）</span></h4><div class="kb-grid">';
+    items.forEach(function(s){
+      h+='<div class="kb-site"><a href="'+esc(s[2])+'" target="_blank" rel="noopener">'+esc(s[1])+'</a><p>'+esc(s[3])+'</p></div>';
+    });
+    box.innerHTML+=h+'</div>';
   });
+  document.getElementById('kbSiteCount').textContent='共 '+shown+' 个网站';
+  if(!shown)box.innerHTML='<div class="empty">没有匹配的网站</div>';
 }
-function addMile(){
-  var t=prompt('里程碑名称：');if(!t||!t.trim())return;
-  var d=prompt('预计日期（YYYY-MM-DD）：','2027-12-31');if(d===null)return;
-  DB.miles.push({t:t.trim(),d:d,done:false});
-  save();renderMile();toast('已添加');
+function renderKBMatrix(){
+  var q=(document.getElementById('kbMatQ').value||'').trim().toLowerCase();
+  var selL=document.getElementById('kbMatLvl'),curL=selL.value;
+  var selP=document.getElementById('kbMatProf'),curP=selP.value;
+  var lvls=[],profs=[];
+  KB_MATRIX.forEach(function(r){if(lvls.indexOf(r[2])<0)lvls.push(r[2]);if(profs.indexOf(r[3])<0)profs.push(r[3]);});
+  selL.innerHTML='<option value="">全部层级</option>';
+  lvls.forEach(function(v){var o=document.createElement('option');o.textContent='层级 '+v;o.value=v;selL.appendChild(o);});
+  selL.value=curL;
+  selP.innerHTML='<option value="">全部分类</option>';
+  profs.forEach(function(v){var o=document.createElement('option');o.textContent=v;o.value=v;selP.appendChild(o);});
+  selP.value=curP;
+  var rows=KB_MATRIX.filter(function(r){
+    if(selL.value&&r[2]!==selL.value)return false;
+    if(selP.value&&r[3]!==selP.value)return false;
+    if(q&&(r[0].toLowerCase().indexOf(q)<0&&r[1].toLowerCase().indexOf(q)<0&&r[4].toLowerCase().indexOf(q)<0&&r[5].toLowerCase().indexOf(q)<0))return false;
+    return true;
+  });
+  document.getElementById('kbMatCount').textContent='共 '+rows.length+' / '+KB_MATRIX.length+' 项';
+  document.getElementById('kbMatBody').innerHTML=rows.map(function(r){
+    return '<tr><td style="white-space:nowrap"><b>'+esc(r[0])+'</b></td>'+
+      '<td>'+esc(r[1])+(r[5]?'<br><span style="font-size:12px;color:var(--muted)">'+esc(r[5])+'</span>':'')+'</td>'+
+      '<td>'+esc(r[2])+'</td><td>'+esc(r[3])+'</td><td style="font-size:12px">'+esc(r[4])+'</td></tr>';
+  }).join('')||'<tr><td colspan="5" class="empty">没有匹配的文件</td></tr>';
 }
-function editMile(i){
-  var m=DB.miles[i];if(!m)return;
-  var t=prompt('里程碑名称：',m.t);if(t===null)return;
-  var d=prompt('预计日期（YYYY-MM-DD，可留空）：',m.d||'');if(d===null)return;
-  m.t=(t||'').trim()||m.t;m.d=(d||'').trim();
-  save();renderMile();renderMileBanner();toast('已保存');
+function renderKBRefs(){
+  document.getElementById('kbRefBody').innerHTML=KB_REFS.map(function(r){
+    return '<tr><td><b>'+esc(r[0])+'</b></td><td>'+esc(r[1])+'</td><td style="font-size:12.5px">'+esc(r[2])+'</td></tr>';
+  }).join('');
+  document.getElementById('kbNotes').innerHTML='<b>使用说明</b><br>'+KB_NOTES.map(esc).join('<br>');
 }
-function toggleMile(i){DB.miles[i].done=!DB.miles[i].done;save();renderMile();renderMileBanner();}
 
 /* ============ 导入导出 ============ */
 function exportData(){
