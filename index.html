@@ -420,7 +420,7 @@ function migrateLegacy(){
   if(legacy){
     try{var d=JSON.parse(legacy);
       if(d&&d.tasks){
-        var pid=Date.now();
+        var pid=String(Date.now());
         projects.push({id:pid,name:'中药研发项目',created_at:new Date().toISOString()});
         localStorage.setItem(allKey(pid),JSON.stringify(d));
         localStorage.removeItem(KEY);saveProjects();return;
@@ -454,14 +454,14 @@ function renderProjView(){
       '<div class="phase">创建于 '+String(p.created_at||'').slice(0,10)+'</div>'+
       '<div style="margin-top:14px;white-space:nowrap">'+
       '<button class="btn sm" style="background:var(--primary);color:#fff" onclick="openProject(&apos;'+p.id+'&apos;)">进入</button> '+
-      '<button class="btn sm" onclick="renameProject(&apos;'+p.id+'&apos;)">重命名</button> '+
-      '<button class="btn sm del" onclick="delProject(&apos;'+p.id+'&apos;)">删除</button></div></div>';
+      (p.id===TMPL_ID?'':'<button class="btn sm" onclick="renameProject(&apos;'+p.id+'&apos;)">重命名</button> <button class="btn sm del" onclick="delProject(&apos;'+p.id+'&apos;)">删除</button>')+
+      '</div></div>';
   });
 }
 function showProjView(){document.getElementById('projview').style.display='block';renderProjView();}
 function hideProjView(){document.getElementById('projview').style.display='none';}
 function openProject(pid){
-  var p=projects.find(function(x){return x.id===pid;});if(!p)return;
+  var p=projects.find(function(x){return String(x.id)===String(pid);});if(!p)return;
   curPid=pid;curPname=p.name;
   var raw=localStorage.getItem(allKey(pid));
   if(raw){try{DB=JSON.parse(raw);}catch(e){DB=freshData(false);}}
@@ -485,7 +485,7 @@ function onRegChange(){
 }
 function openProjForm(pid){
   pfEditingId=pid||null;
-  var p=pid?projects.find(function(x){return x.id===pid;}):null;
+  var p=pid?projects.find(function(x){return String(x.id)===String(pid);}):null;
   document.getElementById('pfTitle').textContent=p?'编辑项目信息':'新建项目';
   document.getElementById('pfName').value=p?p.name:'';document.getElementById('pfLeader').value=p?p.leader||'':'张××';document.getElementById('pfReg').value=p?p.regClass||'':'1.1 中药复方制剂';document.getElementById('pfApp').value=p?p.appType||'':'IND申报';
   document.getElementById('pfLeader').value=p?(p.leader||''):'张××';
@@ -515,7 +515,7 @@ function submitProjForm(){
     else if(sb&&sbUser){sb.from('project_data').update({name:p.name,leader:p.leader||null,reg_class:p.regClass||null,app_type:p.appType||null}).eq('id',p.id).then(function(){});}
     renderProjView();
   }else{
-    var np={id:Date.now(),name:name,leader:leader,regClass:reg,appType:app,created_at:new Date().toISOString()};
+    var np={id:String(Date.now()),name:name,leader:leader,regClass:reg,appType:app,created_at:new Date().toISOString()};
     projects.push(np);saveProjects();
     localStorage.setItem(allKey(np.id),JSON.stringify(cloneFromTemplate()));
     renderProjView();
@@ -524,7 +524,7 @@ function submitProjForm(){
   closeProjForm();
 }
 async function delProject(pid){
-  var p=projects.find(function(x){return x.id===pid;});if(!p)return;
+  var p=projects.find(function(x){return String(x.id)===String(pid);});if(!p)return;
   if(!confirm('删除项目「'+p.name+'」？该项目的数据和云端记录将一并删除'))return;
   if(sb&&sbUser){await sb.from('project_data').delete().eq('id',pid);}
   localStorage.removeItem(allKey(pid));
